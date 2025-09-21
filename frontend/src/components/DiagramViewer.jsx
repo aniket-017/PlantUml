@@ -77,7 +77,8 @@ const DiagramViewer = () => {
               {state.plantUMLImage ? (
                 <div className="text-center">
                   <img
-                    src={apiService.getImageUrl(state.plantUMLImage)}
+                    key={`diagram-${Date.now()}-${state.plantUMLImage}`}
+                    src={`${apiService.getImageUrl(state.plantUMLImage)}?t=${Date.now()}`}
                     alt="Generated PlantUML Diagram"
                     className="max-w-full h-auto mx-auto border border-gray-200 rounded-lg shadow-sm"
                     onError={(e) => {
@@ -87,6 +88,9 @@ const DiagramViewer = () => {
                   />
                   <div style={{ display: 'none' }} className="text-red-500 p-4">
                     Failed to load diagram image
+                  </div>
+                  <div className="mt-2 text-xs text-gray-500">
+                    Generated: {new Date().toLocaleString()}
                   </div>
                 </div>
               ) : (

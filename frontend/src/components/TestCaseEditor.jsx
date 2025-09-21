@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit2, Plus, Trash2, ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
+import { Edit2, ArrowLeft, ArrowRight, AlertCircle, FileText, User, CheckCircle } from 'lucide-react';
 import { useApp } from '../hooks/useApp';
 import { updateTestCase, setStep, setLoading, setError, setPlantUMLData } from '../context/actions';
 import { apiService } from '../services/api';
@@ -8,6 +8,18 @@ const TestCaseEditor = () => {
   const { state, dispatch } = useApp();
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
+
+  // Parse JSON action data safely
+  const parseActionData = (action) => {
+    try {
+      if (typeof action === 'string') {
+        return JSON.parse(action);
+      }
+      return action;
+    } catch {
+      return { Steps: action || 'No steps provided' };
+    }
+  };
 
   const handleEdit = (testCase) => {
     setEditingId(testCase.id);
@@ -161,16 +173,19 @@ const TestCaseEditor = () => {
                   </div>
                 ) : (
                   <div>
-                    <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="text-lg font-medium text-gray-800">
-                          {testCase.title}
-                        </h3>
-                        <p className="text-sm text-gray-500 mt-1">ID: {testCase.id}</p>
+                        <div className="flex items-center mb-2">
+                          <FileText className="h-5 w-5 text-blue-600 mr-2" />
+                          <h3 className="text-lg font-medium text-gray-800">
+                            {testCase.title}
+                          </h3>
+                        </div>
+                        <p className="text-sm text-gray-500">ID: {testCase.id}</p>
                       </div>
                       <button
                         onClick={() => handleEdit(testCase)}
-                        className="flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 transition-colors"
+                        className="flex items-center px-3 py-2 text-blue-600 hover:text-blue-800 bg-blue-50 rounded-md transition-colors"
                       >
                         <Edit2 className="h-4 w-4 mr-1" />
                         Edit
@@ -178,43 +193,82 @@ const TestCaseEditor = () => {
                     </div>
 
                     {testCase.description && (
-                      <div className="mb-3">
-                        <p className="text-sm font-medium text-gray-700">Description:</p>
-                        <p className="text-gray-600 mt-1">{testCase.description}</p>
+                      <div className="mb-4">
+                        <p className="text-sm font-medium text-gray-700 mb-1">Description:</p>
+                        <p className="text-gray-600">{testCase.description}</p>
+                      </div>
+                    )}
+
+                    {testCase.steps && testCase.steps.length > 0 && (
+                      <div className="mb-4">
+                        <p className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Test Case Details:
+                        </p>
+                        {testCase.steps.map((step, index) => {
+                          const actionData = parseActionData(step.action);
+                          return (
+                            <div key={index} className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-4 rounded-lg mb-3">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {actionData['Test Case ID'] && (
+                                  <div>
+                                    <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Test Case ID</span>
+                                    <p className="text-sm text-gray-800 font-medium">{actionData['Test Case ID']}</p>
+                                  </div>
+                                )}
+                                
+                                {actionData['Scenario'] && (
+                                  <div>
+                                    <span className="text-xs font-semibold text-green-600 uppercase tracking-wide">Scenario</span>
+                                    <p className="text-sm text-gray-800">{actionData['Scenario']}</p>
+                                  </div>
+                                )}
+
+                                {actionData['Preconditions'] && (
+                                  <div className="md:col-span-2">
+                                    <span className="text-xs font-semibold text-orange-600 uppercase tracking-wide">Preconditions</span>
+                                    <p className="text-sm text-gray-700">{actionData['Preconditions']}</p>
+                                  </div>
+                                )}
+
+                                {actionData['Steps'] && (
+                                  <div className="md:col-span-2">
+                                    <span className="text-xs font-semibold text-purple-600 uppercase tracking-wide">Steps</span>
+                                    <div className="text-sm text-gray-700 mt-1">
+                                      {actionData['Steps'].split(/\d+\./).filter(step => step.trim()).map((stepText, stepIndex) => (
+                                        <div key={stepIndex} className="flex items-start mb-1">
+                                          <span className="text-purple-600 font-medium mr-2">{stepIndex + 1}.</span>
+                                          <span>{stepText.trim()}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {actionData['Expected Result'] && (
+                                  <div className="md:col-span-2">
+                                    <span className="text-xs font-semibold text-green-600 uppercase tracking-wide">Expected Result</span>
+                                    <p className="text-sm text-gray-700 bg-green-50 p-2 rounded border border-green-200">{actionData['Expected Result']}</p>
+                                  </div>
+                                )}
+
+                                {actionData['Remarks'] && (
+                                  <div className="md:col-span-2">
+                                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Remarks</span>
+                                    <p className="text-sm text-gray-600 italic">{actionData['Remarks']}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
 
                     {testCase.expected && (
                       <div className="mb-3">
-                        <p className="text-sm font-medium text-gray-700">Expected Result:</p>
-                        <p className="text-gray-600 mt-1">{testCase.expected}</p>
-                      </div>
-                    )}
-
-                    {testCase.steps && testCase.steps.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 mb-2">
-                          Steps ({testCase.steps.length}):
-                        </p>
-                        <div className="space-y-2">
-                          {testCase.steps.slice(0, 3).map((step, index) => (
-                            <div key={index} className="bg-gray-50 p-3 rounded-md">
-                              <p className="text-sm text-gray-700">
-                                <span className="font-medium">Step {index + 1}:</span> {step.action}
-                              </p>
-                              {step.expected && (
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Expected: {step.expected}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-                          {testCase.steps.length > 3 && (
-                            <p className="text-sm text-gray-500">
-                              ... and {testCase.steps.length - 3} more steps
-                            </p>
-                          )}
-                        </div>
+                        <p className="text-sm font-medium text-gray-700">Overall Expected Result:</p>
+                        <p className="text-gray-600 mt-1 bg-gray-50 p-2 rounded">{testCase.expected}</p>
                       </div>
                     )}
                   </div>

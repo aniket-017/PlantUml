@@ -1,50 +1,31 @@
 @startuml
 actor User
-actor Manager
 actor SAP
-database Database
+actor Admin
 
 User -> User: Login to portal
 User -> User: Fill required details
 User -> User: Click Submit
-User -> SAP: Submit Request
-SAP -> Database: Save user data
-Database --> SAP: Confirmation of save
-SAP -> SAP: Log Transaction
-User <-- SAP: Confirmation message displayed
-User --> User: Unique Request ID generated
-User -> SAP: Check Order Creation
-SAP -> SAP: Create Sales/Service order
-User --> User: Verify data mapping
-
-User -> User: Skip mandatory fields
-User -> User: Try to submit form without required data
-User <-- User: Show error for missing fields
-User --> User: Submission blocked
-
-User -> User: Submit same request
+User -> SAP: Submit request digitally
+SAP -> SAP: Check SAP transaction log
+SAP -> User: Verify request status in SAP
+User -> User: Try submitting form without required data
+User -> User: Submit request
 User -> User: Resubmit same request
-User <-- User: Prevent duplicates or assign unique IDs
-
-Manager -> SAP: Log into SAP
-Manager -> SAP: Approve Request
-SAP -> SAP: Update Status to Approved
-SAP --> User: Approval reflected in frontend portal
-
-User -> SAP: Submit request during downtime
-SAP --> User: Display Error Message
-User --> SAP: Retry request
-
-SAP -> SAP: Update status (e.g., Fulfilled)
-SAP -> User: Check update on frontend
-User <-- User: Show updated status
-
+SAP -> User: Verify duplicate submission handling
+User -> SAP: Open SAP backend
+SAP -> SAP: Check for order creation
+SAP -> User: Verify order creation
+User -> SAP: Manager logs into SAP
+SAP -> SAP: Approve request
+SAP -> User: Verify status change to approved
+User -> SAP: Submit request during SAP downtime
+SAP -> User: Display error message
+User -> SAP: Update status in SAP
+User -> User: Check frontend for updated status
 User -> User: Submit request
 User -> SAP: Process in SAP
-SAP -> SAP: Complete fulfillment
-SAP -> User: Notify of completion
+User -> User: Complete fulfillment
+User -> User: Generate report in SAP
 
-User -> SAP: Generate report
-User -> SAP: Compare with frontend logs
-User <-- User: Records consistent in both systems
 @enduml

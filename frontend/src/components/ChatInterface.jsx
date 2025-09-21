@@ -213,7 +213,8 @@ const ChatInterface = () => {
               {state.plantUMLImage ? (
                 <div className="text-center">
                   <img
-                    src={apiService.getImageUrl(state.plantUMLImage)}
+                    key={`diagram-${Date.now()}-${state.plantUMLImage}`}
+                    src={`${apiService.getImageUrl(state.plantUMLImage)}?t=${Date.now()}`}
                     alt="Updated PlantUML Diagram"
                     className="max-w-full h-auto mx-auto border border-gray-200 rounded-lg shadow-sm"
                     onError={(e) => {
@@ -223,6 +224,9 @@ const ChatInterface = () => {
                   />
                   <div style={{ display: 'none' }} className="text-red-500 p-4">
                     Failed to load diagram image
+                  </div>
+                  <div className="mt-2 text-xs text-gray-500">
+                    Last updated: {new Date().toLocaleTimeString()}
                   </div>
                 </div>
               ) : (
