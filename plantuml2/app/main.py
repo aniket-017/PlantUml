@@ -4,9 +4,10 @@ import shutil
 import json
 from pathlib import Path
 import pandas as pd
-from fastapi import FastAPI, UploadFile, File, HTTPException, Body
+from fastapi import FastAPI, UploadFile, File, HTTPException, Body, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 
 from app.services.csv_service import (
@@ -20,8 +21,11 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 UPLOAD_DIR = BASE_DIR / "uploads"
 STATIC_DIR = BASE_DIR / "static"
+FRONTEND_DIST_DIR = BASE_DIR.parent / "frontend" / "dist"
 UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
 STATIC_DIR.mkdir(exist_ok=True, parents=True)
+
+print(FRONTEND_DIST_DIR, "FRONTEND_DIST_DIR");
 
 app = FastAPI(title="Test Case → PlantUML Generator")
 
@@ -36,10 +40,14 @@ app.add_middleware(
 # Serve generated images
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
+# Serve React frontend static files
+app.mount("/assets", StaticFiles(directory=FRONTEND_DIST_DIR / "assets"), name="frontend_assets")
+
 
 @app.get("/")
-async def root():
-    return {"message": "Test Case to PlantUML Generator API"}
+async def serve_frontend():
+    """Serve the React frontend index.html"""
+    return FileResponse(FRONTEND_DIST_DIR / "index.html")
 
 
 @app.get("/health")
@@ -136,3 +144,15 @@ async def chat_plantuml(request: dict = Body(...)):
         )
 
     return result
+
+
+# Catch-all route for React Router (must be last)
+@app.get("/{full_path:path}")
+async def serve_frontend_catch_all(full_path: str):
+    """Catch-all route to serve React app for client-side routing"""
+    # Check if the path is an API route
+    if full_path.startswith(("api/", "upload-csv/", "generate-diagram/", "chat-plantuml/", "health")):
+        raise HTTPException(status_code=404, detail="API endpoint not found")
+    
+    # For all other routes, serve the React app
+    return FileResponse(FRONTEND_DIST_DIR / "index.html")

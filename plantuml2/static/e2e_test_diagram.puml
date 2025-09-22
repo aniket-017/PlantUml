@@ -1,31 +1,56 @@
 @startuml
 actor User
-actor SAP
+actor SAP_System
+actor Manager
 actor Admin
 
 User -> User: Login to portal
 User -> User: Fill required details
 User -> User: Click Submit
-User -> SAP: Submit request digitally
-SAP -> SAP: Check SAP transaction log
-SAP -> User: Verify request status in SAP
-User -> User: Try submitting form without required data
-User -> User: Submit request
-User -> User: Resubmit same request
-SAP -> User: Verify duplicate submission handling
-User -> SAP: Open SAP backend
-SAP -> SAP: Check for order creation
-SAP -> User: Verify order creation
-User -> SAP: Manager logs into SAP
-SAP -> SAP: Approve request
-SAP -> User: Verify status change to approved
-User -> SAP: Submit request during SAP downtime
-SAP -> User: Display error message
-User -> SAP: Update status in SAP
-User -> User: Check frontend for updated status
-User -> User: Submit request
-User -> SAP: Process in SAP
-User -> User: Complete fulfillment
-User -> User: Generate report in SAP
+User -> SAP_System: Submit request
+SAP_System -> SAP_System: Log request
+User <- SAP_System: Confirmation message displayed
+User -> User: Display Unique Request ID 
 
+User -> SAP_System: Check SAP transaction log
+SAP_System -> SAP_System: Validate request availability
+User <- SAP_System: Request Status = "New"
+
+User -> User: Try submitting form without required data
+User -> User: Check error messages
+User <- User: System shows error for missing fields
+
+User -> SAP_System: Submit same request
+User -> SAP_System: Resubmit same request
+SAP_System -> SAP_System: Prevent duplicate requests
+User <- SAP_System: System prevents duplicate OR assigns unique IDs
+
+SAP_System -> SAP_System: Check for order creation
+User <- SAP_System: SAP order created with correct details
+
+Manager -> SAP_System: Login to SAP
+Manager -> SAP_System: Approve request
+SAP_System -> SAP_System: Change status to "Approved"
+User <- SAP_System: Approval reflected in frontend portal
+
+User -> SAP_System: Submit request during downtime
+SAP_System -> User: Error message displayed
+User <- SAP_System: Request retried/queued 
+
+SAP_System -> SAP_System: Update status in SAP
+User -> SAP_System: Check portal
+SAP_System -> User: Frontend shows updated status
+
+User -> User: Submit request
+SAP_System -> SAP_System: Process in SAP
+SAP_System -> User: User notified of completion
+
+SAP_System -> SAP_System: Generate report
+SAP_System -> User: Compare with frontend logs
+User <- SAP_System: Records consistent in both systems
+
+Admin -> SAP_System: Login as Admin
+Admin -> SAP_System: Add new entity
+SAP_System -> SAP_System: Validate new entity details
+Admin <- SAP_System: New entity added successfully
 @enduml
