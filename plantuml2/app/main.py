@@ -27,6 +27,9 @@ STATIC_DIR.mkdir(exist_ok=True, parents=True)
 
 print(FRONTEND_DIST_DIR, "FRONTEND_DIST_DIR");
 
+# Default port configuration
+DEFAULT_PORT = 2004
+
 app = FastAPI(title="Test Case → PlantUML Generator")
 
 app.add_middleware(
@@ -156,3 +159,8 @@ async def serve_frontend_catch_all(full_path: str):
     
     # For all other routes, serve the React app
     return FileResponse(FRONTEND_DIST_DIR / "index.html")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=DEFAULT_PORT, reload=True)

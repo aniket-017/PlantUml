@@ -24,9 +24,9 @@ jobs:
           node-version: "20.x"
 
       # Step 3: Install backend dependencies (root)
-    #   - name: Install backend dependencies
-    #     run: npm install --force
-    #     working-directory: .
+      #   - name: Install backend dependencies
+      #     run: npm install --force
+      #     working-directory: .
 
       # # Step 4: Install frontend dependencies
       # - name: Install frontend dependencies
@@ -73,7 +73,7 @@ jobs:
 
             # Install backend dependencies
             cd plantuml2
-            pip install 
+            pip install -r requirements.txt
             cd ..
 
             # Install frontend dependencies and build
@@ -82,14 +82,17 @@ jobs:
             npm run build
             cd ..
 
-            cd backend
+            cd plantuml2
+            # Create logs directory
+            mkdir -p logs
+            
             # Restart the application using PM2
-            if pm2 list | grep -q "studieshq-transformation"; then
-              echo "Restarting BiddingApp"
-              pm2 restart studieshq-transformation
+            if pm2 list | grep -q "PlantUml"; then
+              echo "PlantUml"
+              pm2 restart PlantUml
             else
-              echo "Starting BiddingApp"
-              pm2 start npm --name "studieshq-transformation" -- run dev
+              echo "Starting PlantUml"
+              pm2 start ecosystem.config.js
             fi
 
             # Check the status of PM2 processes

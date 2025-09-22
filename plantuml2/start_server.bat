@@ -1,0 +1,3 @@
+@echo off
+echo Starting FastAPI server on port 2004...
+uvicorn app.main:app --reload --host 0.0.0.0 --port 2004
