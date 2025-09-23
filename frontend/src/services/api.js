@@ -1,56 +1,56 @@
-const BASE_URL = 'http://localhost:2004';
+const BASE_URL = "http://154.53.42.27:2004";
 
 class ApiService {
   async uploadFile(file) {
     const formData = new FormData();
-    formData.append('file', file);
-    
+    formData.append("file", file);
+
     const response = await fetch(`${BASE_URL}/upload-csv/`, {
-      method: 'POST',
+      method: "POST",
       body: formData,
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     return await response.json();
   }
 
   async generateDiagram(testCases) {
     const response = await fetch(`${BASE_URL}/generate-diagram/`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        test_cases: testCases
+        test_cases: testCases,
       }),
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     return await response.json();
   }
 
   async chatWithPlantUML(plantUMLCode, message) {
     const response = await fetch(`${BASE_URL}/chat-plantuml/`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         plantuml_code: plantUMLCode,
-        message: message
+        message: message,
       }),
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     return await response.json();
   }
 
