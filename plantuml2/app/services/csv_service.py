@@ -167,45 +167,128 @@ def process_csv_and_generate(csv_path: str = None, output_dir: str = ".", test_c
     """
     tmp_csv_path = None
     try:
+        print("=== PROCESS_CSV_AND_GENERATE START ===")
+        print(f"Timestamp: {__import__('datetime').datetime.now()}")
+        print(f"Output directory: {output_dir}")
+        
         if test_cases:
+            print(f"Writing {len(test_cases)} test cases to temp CSV...")
             tmp_csv_path = _write_test_cases_to_temp_csv(test_cases)
+            print(f"✓ Temp CSV created successfully at: {tmp_csv_path}")
         else:
+            print(f"Reading CSV from {csv_path}...")
             with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False, encoding="utf-8") as tmp_file:
                 df = pd.read_csv(csv_path)
                 df.to_csv(tmp_file.name, index=False)
                 tmp_csv_path = tmp_file.name
+            print(f"✓ CSV processed and temp file created: {tmp_csv_path}")
 
-        csv_tool = CsvTools(csvs=[tmp_csv_path], read_csvs=True, list_csvs=True, read_column_names=True)
+        print("Initializing CsvTools...")
+        try:
+            csv_tool = CsvTools(csvs=[tmp_csv_path], read_csvs=True, list_csvs=True, read_column_names=True)
+            print("✓ CsvTools initialized successfully")
+        except Exception as e:
+            print(f"✗ ERROR initializing CsvTools: {str(e)}")
+            raise
 
-        agent = Agent(
-            name="Test Case to PlantUML Agent",
-            model=OpenAIChat(id="gpt-4o-mini"),
-            tools=[csv_tool],
-            instructions=[
-                "You are an expert at analyzing test cases and creating PlantUML sequence diagrams.",
-                "Examine test case data → identify actors, steps, interactions.",
-                "Return only ```plantuml fenced code```.",
-            ],
-            markdown=True,
-        )
+        print("Checking OpenAI API key...")
+        import os
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key:
+            print("✗ ERROR: OPENAI_API_KEY environment variable is not set")
+            raise Exception("OPENAI_API_KEY environment variable is not set")
+        else:
+            print(f"✓ OpenAI API key found (length: {len(openai_key)})")
+        
+        print("Initializing OpenAI model...")
+        try:
+            model = OpenAIChat(id="gpt-4o-mini")
+            print("✓ OpenAI model initialized successfully")
+        except Exception as e:
+            print(f"✗ ERROR initializing OpenAI model: {str(e)}")
+            raise
 
-        resp = agent.run("Analyze the test cases and create a PlantUML sequence diagram.")
-        puml_text_raw = resp.content if hasattr(resp, "content") else str(resp)
-        plantuml_code = _extract_code_block(puml_text_raw, lang_hint="plantuml")
+        print("Creating Agent with tools...")
+        try:
+            agent = Agent(
+                name="Test Case to PlantUML Agent",
+                model=model,
+                tools=[csv_tool],
+                instructions=[
+                    "You are an expert at analyzing test cases and creating PlantUML sequence diagrams.",
+                    "Examine test case data → identify actors, steps, interactions.",
+                    "Return only ```plantuml fenced code```.",
+                ],
+                markdown=True,
+            )
+            print("✓ Agent created successfully")
+        except Exception as e:
+            print(f"✗ ERROR creating Agent: {str(e)}")
+            raise
 
-        img_path = render_plantuml_from_text(plantuml_code, output_dir=output_dir, filename_base="e2e_test_diagram")
+        print("Running AI agent to generate PlantUML...")
+        try:
+            resp = agent.run("Analyze the test cases and create a PlantUML sequence diagram.")
+            print("✓ AI agent response received")
+            print(f"Response type: {type(resp)}")
+            print(f"Response has content attr: {hasattr(resp, 'content')}")
+            
+            puml_text_raw = resp.content if hasattr(resp, "content") else str(resp)
+            print(f"Raw PlantUML text length: {len(puml_text_raw)}")
+            print(f"Raw PlantUML text preview: {puml_text_raw[:200]}...")
+        except Exception as e:
+            print(f"✗ ERROR during AI agent execution: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise
 
+        print("Extracting PlantUML code from response...")
+        try:
+            plantuml_code = _extract_code_block(puml_text_raw, lang_hint="plantuml")
+            print(f"✓ PlantUML code extracted (length: {len(plantuml_code)})")
+            print(f"PlantUML code preview: {plantuml_code[:200]}...")
+        except Exception as e:
+            print(f"✗ ERROR extracting PlantUML code: {str(e)}")
+            raise
+
+        print("Rendering PlantUML to image...")
+        try:
+            img_path = render_plantuml_from_text(plantuml_code, output_dir=output_dir, filename_base="e2e_test_diagram")
+            print(f"✓ Image generated successfully at: {img_path}")
+        except Exception as e:
+            print(f"✗ ERROR rendering PlantUML: {str(e)}")
+            raise
+
+        print("Extracting actors and activities...")
+        try:
+            actors = _extract_actors_from_plantuml(plantuml_code)
+            activities = _extract_activities_from_plantuml(plantuml_code)
+            print(f"✓ Extracted {len(actors)} actors and {len(activities)} activities")
+        except Exception as e:
+            print(f"✗ ERROR extracting actors/activities: {str(e)}")
+            # Don't fail the whole process for this
+            actors = []
+            activities = []
+
+        print("=== PROCESS_CSV_AND_GENERATE SUCCESS ===")
         return {
             "success": True,
             "plantuml_code": plantuml_code,
             "plantuml_image": f"/static/{Path(img_path).name}",
-            "actors": _extract_actors_from_plantuml(plantuml_code),
-            "activities": _extract_activities_from_plantuml(plantuml_code),
+            "actors": actors,
+            "activities": activities,
         }
     except Exception as e:
+        print(f"=== PROCESS_CSV_AND_GENERATE ERROR ===")
+        print(f"Error: {str(e)}")
+        print(f"Error type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
+        print("=== PROCESS_CSV_AND_GENERATE ERROR END ===")
         return {"success": False, "error": str(e), "plantuml_code": None, "plantuml_image": None, "actors": [], "activities": []}
     finally:
         if tmp_csv_path and os.path.exists(tmp_csv_path):
+            print(f"Cleaning up temp file: {tmp_csv_path}")
             os.unlink(tmp_csv_path)
 
 

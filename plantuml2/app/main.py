@@ -110,21 +110,57 @@ async def generate_diagram(request: dict = Body(...)):
     """
     Accept edited test_cases JSON from frontend and resume PlantUML pipeline.
     """
-    test_cases = request.get("test_cases")
-    if not test_cases or not isinstance(test_cases, list):
-        raise HTTPException(status_code=400, detail="No test_cases provided")
+    try:
+        print("=== GENERATE DIAGRAM START ===")
+        print(f"Request received at: {__import__('datetime').datetime.now()}")
+        
+        test_cases = request.get("test_cases")
+        print(f"Test cases count: {len(test_cases) if test_cases else 0}")
+        
+        if not test_cases or not isinstance(test_cases, list):
+            print("ERROR: No test_cases provided or invalid format")
+            raise HTTPException(status_code=400, detail="No test_cases provided")
 
-    result = process_csv_and_generate(
-        csv_path=None, output_dir=str(STATIC_DIR), test_cases=test_cases
-    )
-
-    if not result.get("success", False):
-        raise HTTPException(
-            status_code=500,
-            detail=result.get("error", "Failed to process test cases"),
+        print(f"Processing {len(test_cases)} test cases...")
+        print(f"Output directory: {STATIC_DIR}")
+        
+        # Check environment variables
+        import os
+        openai_key = os.getenv("OPENAI_API_KEY")
+        print(f"OpenAI API Key present: {bool(openai_key)}")
+        if openai_key:
+            print(f"OpenAI API Key length: {len(openai_key)}")
+        
+        result = process_csv_and_generate(
+            csv_path=None, output_dir=str(STATIC_DIR), test_cases=test_cases
         )
 
-    return result
+        print(f"Process result success: {result.get('success', False)}")
+        if not result.get("success", False):
+            error_msg = result.get("error", "Failed to process test cases")
+            print(f"ERROR in process_csv_and_generate: {error_msg}")
+            print("=== GENERATE DIAGRAM ERROR ===")
+            raise HTTPException(
+                status_code=500,
+                detail=error_msg,
+            )
+
+        print("Diagram generated successfully")
+        print("=== GENERATE DIAGRAM SUCCESS ===")
+        return result
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
+    except Exception as e:
+        print(f"UNEXPECTED ERROR in generate_diagram: {str(e)}")
+        print(f"Error type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
+        print("=== GENERATE DIAGRAM UNEXPECTED ERROR ===")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}",
+        )
 
 
 @app.post("/chat-plantuml/")
