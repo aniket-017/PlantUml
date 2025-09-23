@@ -165,6 +165,7 @@ def process_csv_and_generate(csv_path: str = None, output_dir: str = ".", test_c
     """
     Accepts either csv_path or test_cases list. Writes a temp CSV, then runs AI → PlantUML.
     """
+    import os  # Move import to function level
     tmp_csv_path = None
     try:
         print("=== PROCESS_CSV_AND_GENERATE START ===")
@@ -192,7 +193,6 @@ def process_csv_and_generate(csv_path: str = None, output_dir: str = ".", test_c
             raise
 
         print("Checking OpenAI API key...")
-        import os
         openai_key = os.getenv("OPENAI_API_KEY")
         if not openai_key:
             print("✗ ERROR: OPENAI_API_KEY environment variable is not set")
