@@ -47,7 +47,7 @@ def render_plantuml_from_text(puml_text: str, output_dir: str, filename_base: st
             raise Exception("Java is not installed or not in PATH")
 
         # call PlantUML to generate PNG
-        cmd = ["java", "-jar", str(PLANTUML_JAR), "-tpng", str(puml_file), "-charset", "UTF-8"]
+        cmd = ["java", "-jar", str(PLANTUML_JAR.resolve()), "-tpng", str(puml_file), "-charset", "UTF-8"]
         print(f"Running PlantUML command: {' '.join(cmd)}")
         print(f"Working directory: {outdir}")
         

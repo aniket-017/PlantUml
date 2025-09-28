@@ -1,56 +1,26 @@
 @startuml
 actor User
-actor SAP_System
-actor Manager
-actor Admin
+actor System
 
-User -> User: Login to portal
-User -> User: Fill required details
-User -> User: Click Submit
-User -> SAP_System: Submit request
-SAP_System -> SAP_System: Log request
-User <- SAP_System: Confirmation message displayed
-User -> User: Display Unique Request ID 
+User -> User : Login to portal
+User -> User : Fill required details
+User -> System : Click Submit
+System -> User : Request successfully submitted
+User -> User : Verify Request ID syncs with SAP
 
-User -> SAP_System: Check SAP transaction log
-SAP_System -> SAP_System: Validate request availability
-User <- SAP_System: Request Status = "New"
+User -> User : Try submitting form without required data
+User -> System : Click Submit
+System -> User : System shows error for missing fields
 
-User -> User: Try submitting form without required data
-User -> User: Check error messages
-User <- User: System shows error for missing fields
+User -> User : Submit request
+User -> System : Resubmit same request
+System -> User : System prevents duplicate OR assigns unique IDs
 
-User -> SAP_System: Submit same request
-User -> SAP_System: Resubmit same request
-SAP_System -> SAP_System: Prevent duplicate requests
-User <- SAP_System: System prevents duplicate OR assigns unique IDs
+System -> System : Update status in SAP (e.g., Fulfilled)
+System -> User : Frontend shows updated status
 
-SAP_System -> SAP_System: Check for order creation
-User <- SAP_System: SAP order created with correct details
-
-Manager -> SAP_System: Login to SAP
-Manager -> SAP_System: Approve request
-SAP_System -> SAP_System: Change status to "Approved"
-User <- SAP_System: Approval reflected in frontend portal
-
-User -> SAP_System: Submit request during downtime
-SAP_System -> User: Error message displayed
-User <- SAP_System: Request retried/queued 
-
-SAP_System -> SAP_System: Update status in SAP
-User -> SAP_System: Check portal
-SAP_System -> User: Frontend shows updated status
-
-User -> User: Submit request
-SAP_System -> SAP_System: Process in SAP
-SAP_System -> User: User notified of completion
-
-SAP_System -> SAP_System: Generate report
-SAP_System -> User: Compare with frontend logs
-User <- SAP_System: Records consistent in both systems
-
-Admin -> SAP_System: Login as Admin
-Admin -> SAP_System: Add new entity
-SAP_System -> SAP_System: Validate new entity details
-Admin <- SAP_System: New entity added successfully
+User -> User : Submit request
+User -> System : Process in SAP
+System -> System : Complete fulfillment
+System -> User : User notified of completion
 @enduml

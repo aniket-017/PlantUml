@@ -1,38 +1,53 @@
-import React, { useState } from 'react';
-import { Upload, FileSpreadsheet, AlertCircle } from 'lucide-react';
-import { apiService } from '../services/api';
-import { useApp } from '../hooks/useApp';
-import { setLoading, setError, setTestCases, setUploadedFile, setStep } from '../context/actions';
+import React, { useState, useEffect } from "react";
+import { Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
+import { apiService } from "../services/api";
+import { useApp } from "../hooks/useApp";
+import { setLoading, setError, setTestCases, setUploadedFile, setStep, setApiKey } from "../context/actions";
+import { storage } from "../utils/storage";
 
 const FileUpload = () => {
   const { state, dispatch } = useApp();
   const [dragActive, setDragActive] = useState(false);
 
+  // Check for API key on component mount
+  useEffect(() => {
+    const savedApiKey = storage.getValidatedApiKey();
+    if (savedApiKey) {
+      setApiKey(dispatch, savedApiKey);
+      apiService.setApiKey(savedApiKey);
+      setStep(dispatch, "upload");
+    }
+  }, [dispatch]);
+
   const handleFiles = async (files) => {
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    
+
     // Validate file type
-    const validTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+    const validTypes = [
+      "text/csv",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ];
     if (!validTypes.includes(file.type) && !file.name.match(/\.(csv|xlsx|xls)$/i)) {
-      setError(dispatch, 'Please select a CSV or Excel file');
+      setError(dispatch, "Please select a CSV or Excel file");
       return;
     }
 
     try {
       setLoading(dispatch, true);
       const result = await apiService.uploadFile(file);
-      
+
       if (result.success) {
         setUploadedFile(dispatch, file);
         setTestCases(dispatch, result.test_cases);
-        setStep(dispatch, 'edit');
+        setStep(dispatch, "edit");
       } else {
-        setError(dispatch, 'Failed to process file');
+        setError(dispatch, "Failed to process file");
       }
     } catch (error) {
-      setError(dispatch, error.message || 'Failed to upload file');
+      setError(dispatch, error.message || "Failed to upload file");
     } finally {
       setLoading(dispatch, false);
     }
@@ -41,9 +56,9 @@ const FileUpload = () => {
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+    if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (e.type === "dragleave") {
       setDragActive(false);
     }
   };
@@ -52,7 +67,7 @@ const FileUpload = () => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(e.dataTransfer.files);
     }
@@ -66,12 +81,10 @@ const FileUpload = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">
-          CSV to PlantUML Generator
-        </h1>
-        <p className="text-lg text-gray-600">
+    <div className="max-w-2xl mx-auto p-4 sm:p-6">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-4xl font-bold text-gray-800 mb-4">CSV to PlantUML Generator</h1>
+        <p className="text-base sm:text-lg text-gray-600">
           Upload your CSV or Excel file to generate beautiful UML diagrams
         </p>
       </div>
@@ -84,12 +97,12 @@ const FileUpload = () => {
       )}
 
       <div
-        className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+        className={`relative border-2 border-dashed rounded-lg p-4 sm:p-8 text-center transition-colors ${
           dragActive
-            ? 'border-blue-400 bg-blue-50'
+            ? "border-blue-400 bg-blue-50"
             : state.loading
-            ? 'border-gray-200 bg-gray-50'
-            : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+            ? "border-gray-200 bg-gray-50"
+            : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
         }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -107,25 +120,23 @@ const FileUpload = () => {
 
         <div className="space-y-4">
           {state.loading ? (
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto"></div>
           ) : (
-            <Upload className="h-12 w-12 text-gray-400 mx-auto" />
+            <Upload className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto" />
           )}
 
           <div>
-            <p className="text-lg font-medium text-gray-700">
-              {state.loading ? 'Processing your file...' : 'Drop your file here or click to browse'}
+            <p className="text-base sm:text-lg font-medium text-gray-700">
+              {state.loading ? "Processing your file..." : "Drop your file here or click to browse"}
             </p>
-            <p className="text-sm text-gray-500 mt-1">
-              Supports CSV and Excel files (.csv, .xlsx, .xls)
-            </p>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">Supports CSV and Excel files (.csv, .xlsx, .xls)</p>
           </div>
 
           {!state.loading && (
             <button
               type="button"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              onClick={() => document.getElementById('file-upload').click()}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm sm:text-base"
+              onClick={() => document.getElementById("file-upload").click()}
             >
               <FileSpreadsheet className="h-4 w-4 mr-2" />
               Choose File
@@ -134,23 +145,31 @@ const FileUpload = () => {
         </div>
       </div>
 
-      <div className="mt-8 bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">How it works:</h3>
-        <div className="space-y-2 text-sm text-gray-600">
+      <div className="mt-6 sm:mt-8 bg-gray-50 rounded-lg p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3">How it works:</h3>
+        <div className="space-y-2 text-xs sm:text-sm text-gray-600">
           <div className="flex items-center">
-            <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold mr-3">1</span>
+            <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold mr-3">
+              1
+            </span>
             Upload your CSV or Excel file containing test case data
           </div>
           <div className="flex items-center">
-            <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold mr-3">2</span>
+            <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold mr-3">
+              2
+            </span>
             Review and edit test cases if needed
           </div>
           <div className="flex items-center">
-            <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold mr-3">3</span>
+            <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold mr-3">
+              3
+            </span>
             Generate your PlantUML diagram automatically
           </div>
           <div className="flex items-center">
-            <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold mr-3">4</span>
+            <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold mr-3">
+              4
+            </span>
             Refine the diagram using our AI chat interface
           </div>
         </div>

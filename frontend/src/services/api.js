@@ -1,57 +1,86 @@
-const BASE_URL = 'http://154.53.42.27:2004';
-// const BASE_URL = 'http://localhost:2004';
+const BASE_URL = 'https://poc1.prashantpukale.com/';
+// const BASE_URL = "http://localhost:8000";
 
 class ApiService {
+  constructor() {
+    this.apiKey = null;
+  }
+
+  setApiKey(apiKey) {
+    this.apiKey = apiKey;
+  }
+
+  getHeaders(includeContentType = true) {
+    const headers = {};
+
+    if (includeContentType) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    if (this.apiKey) {
+      headers["X-OpenAI-API-Key"] = this.apiKey;
+    }
+
+    return headers;
+  }
   async uploadFile(file) {
     const formData = new FormData();
-    formData.append('file', file);
-    
+    formData.append("file", file);
+
     const response = await fetch(`${BASE_URL}/upload-csv/`, {
-      method: 'POST',
+      method: "POST",
+      headers: this.getHeaders(false), // Don't include Content-Type for FormData
       body: formData,
     });
-    
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
     }
-    
+
     return await response.json();
   }
 
   async generateDiagram(testCases) {
+    if (!this.apiKey) {
+      throw new Error("OpenAI API key is required. Please set your API key first.");
+    }
+
     const response = await fetch(`${BASE_URL}/generate-diagram/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      method: "POST",
+      headers: this.getHeaders(),
       body: JSON.stringify({
-        test_cases: testCases
+        test_cases: testCases,
       }),
     });
-    
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
     }
-    
+
     return await response.json();
   }
 
   async chatWithPlantUML(plantUMLCode, message) {
+    if (!this.apiKey) {
+      throw new Error("OpenAI API key is required. Please set your API key first.");
+    }
+
     const response = await fetch(`${BASE_URL}/chat-plantuml/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      method: "POST",
+      headers: this.getHeaders(),
       body: JSON.stringify({
         plantuml_code: plantUMLCode,
-        message: message
+        message: message,
       }),
     });
-    
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
     }
-    
+
     return await response.json();
   }
 

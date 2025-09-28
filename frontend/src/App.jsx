@@ -1,37 +1,50 @@
-import React from 'react';
-import { AppProvider } from './context/AppContext';
-import { useApp } from './hooks/useApp';
-import StepIndicator from './components/StepIndicator';
-import FileUpload from './components/FileUpload';
-import TestCaseEditor from './components/TestCaseEditor';
-import DiagramViewer from './components/DiagramViewer';
-import ChatInterface from './components/ChatInterface';
-import './App.css';
+import React from "react";
+import { AppProvider } from "./context/AppContext";
+import { useApp } from "./hooks/useApp";
+import { setApiKey, setStep } from "./context/actions";
+import { apiService } from "./services/api";
+import LandingPage from "./components/LandingPage";
+import StepIndicator from "./components/StepIndicator";
+import ApiKeyInput from "./components/ApiKeyInput";
+import FileUpload from "./components/FileUpload";
+import TestCaseEditor from "./components/TestCaseEditor";
+import DiagramViewer from "./components/DiagramViewer";
+import ChatInterface from "./components/ChatInterface";
+import "./App.css";
 
 const AppContent = () => {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
+
+  const handleApiKeySet = (apiKey) => {
+    // Set API key in context and API service
+    setApiKey(dispatch, apiKey);
+    apiService.setApiKey(apiKey);
+    setStep(dispatch, "upload");
+  };
 
   const renderCurrentStep = () => {
     switch (state.currentStep) {
-      case 'upload':
+      case "landing":
+        return <LandingPage />;
+      case "api-key":
+        return <ApiKeyInput onApiKeySet={handleApiKeySet} />;
+      case "upload":
         return <FileUpload />;
-      case 'edit':
+      case "edit":
         return <TestCaseEditor />;
-      case 'diagram':
+      case "diagram":
         return <DiagramViewer />;
-      case 'chat':
+      case "chat":
         return <ChatInterface />;
       default:
-        return <FileUpload />;
+        return <LandingPage />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <StepIndicator />
-      <main className="py-8">
-        {renderCurrentStep()}
-      </main>
+      <main className={state.currentStep === "landing" ? "" : "py-8 bg-gray-50"}>{renderCurrentStep()}</main>
     </div>
   );
 };

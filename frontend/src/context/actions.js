@@ -1,15 +1,16 @@
 // Action types
 export const ACTIONS = {
-  SET_LOADING: 'SET_LOADING',
-  SET_ERROR: 'SET_ERROR',
-  CLEAR_ERROR: 'CLEAR_ERROR',
-  SET_STEP: 'SET_STEP',
-  SET_UPLOADED_FILE: 'SET_UPLOADED_FILE',
-  SET_TEST_CASES: 'SET_TEST_CASES',
-  UPDATE_TEST_CASE: 'UPDATE_TEST_CASE',
-  SET_PLANTUML_DATA: 'SET_PLANTUML_DATA',
-  ADD_CHAT_MESSAGE: 'ADD_CHAT_MESSAGE',
-  RESET_STATE: 'RESET_STATE',
+  SET_LOADING: "SET_LOADING",
+  SET_ERROR: "SET_ERROR",
+  CLEAR_ERROR: "CLEAR_ERROR",
+  SET_STEP: "SET_STEP",
+  SET_API_KEY: "SET_API_KEY",
+  SET_UPLOADED_FILE: "SET_UPLOADED_FILE",
+  SET_TEST_CASES: "SET_TEST_CASES",
+  UPDATE_TEST_CASE: "UPDATE_TEST_CASE",
+  SET_PLANTUML_DATA: "SET_PLANTUML_DATA",
+  ADD_CHAT_MESSAGE: "ADD_CHAT_MESSAGE",
+  RESET_STATE: "RESET_STATE",
 };
 
 // Action creators (helper functions)
@@ -27,6 +28,10 @@ export const clearError = (dispatch) => {
 
 export const setStep = (dispatch, step) => {
   dispatch({ type: ACTIONS.SET_STEP, payload: step });
+};
+
+export const setApiKey = (dispatch, apiKey) => {
+  dispatch({ type: ACTIONS.SET_API_KEY, payload: apiKey });
 };
 
 export const setUploadedFile = (dispatch, file) => {
