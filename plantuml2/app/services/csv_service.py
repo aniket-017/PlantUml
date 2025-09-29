@@ -9,7 +9,7 @@ from pathlib import Path
 from phi.agent import Agent
 from phi.model.openai import OpenAIChat
 from phi.tools.csv_tools import CsvTools
-from .plantuml_service import render_plantuml_from_text
+from .plantuml_service import render_plantuml_from_text, PlantUMLSyntaxError
 
 
 def _extract_code_block(text: str, lang_hint: str = None) -> str:
@@ -48,8 +48,13 @@ def _extract_json_from_response(content: str) -> str:
 
 def enrich_test_cases_with_ai(test_cases: list, openai_api_key: str = None) -> list:
     """
-    Send constructed test cases to GPT so it can analyze the data deeply,
-    identify missing test scenarios, and generate comprehensive test cases.
+    Analyze user-provided test cases, understand the flow, and return a comprehensive test suite.
+    
+    The function will:
+    1. Keep ALL original user-provided test cases (mandatory)
+    2. Understand the logical flow and sequence of operations
+    3. Reorder test cases to follow a logical execution flow
+    4. Add new test cases to fill gaps in coverage
     """
     # Set API key if provided
     if openai_api_key:
@@ -61,17 +66,15 @@ def enrich_test_cases_with_ai(test_cases: list, openai_api_key: str = None) -> l
         model=OpenAIChat(id="gpt-4o-mini"),
         instructions=[
             "You are a senior QA engineer and test automation expert.",
-            "Analyze the provided test cases and the underlying data patterns to generate comprehensive test coverage.",
-            "Your task is to:",
-            "1. Review existing test cases for completeness and clarity",
-            "2. Identify missing test scenarios based on the data patterns",
-            "3. Generate additional test cases to ensure full coverage",
-            "4. Consider edge cases, boundary conditions, and error scenarios",
+            "CRITICAL REQUIREMENTS:",
+            "1. MUST include ALL original user-provided test cases in your output (do not remove or skip any)",
+            "2. Analyze and understand the logical flow from the provided test cases",
+            "3. Reorder the test cases to follow a logical execution sequence (setup → happy path → alternatives → error cases → teardown)",
+            "4. Add NEW test cases to fill gaps in coverage, but keep ALL original ones",
             "5. Ensure proper test case structure with: id, title, description, steps, actors, expected",
-            "6. Group related test cases logically",
+            "6. Make test cases specific, measurable, and actionable",
             "7. Include positive, negative, and edge case scenarios",
-            "8. Make test cases specific, measurable, and actionable",
-            "Return ONLY valid JSON (list of test cases)."
+            "Return ONLY valid JSON (list of test cases) that includes ALL original test cases plus any new ones you generate."
         ],
         markdown=True,
     )
@@ -79,37 +82,55 @@ def enrich_test_cases_with_ai(test_cases: list, openai_api_key: str = None) -> l
     try:
         # Create a comprehensive analysis prompt
         analysis_prompt = f"""
-        Analyze the following test cases and generate a comprehensive test suite:
+        You are given {len(test_cases)} test case(s) from the user's CSV file.
+        
+        YOUR TASK:
+        1. **UNDERSTAND THE FLOW**: Analyze these test cases to understand the application/system flow and behavior
+        2. **KEEP ALL ORIGINAL TEST CASES**: You MUST include ALL {len(test_cases)} original test cases in your response
+        3. **LOGICAL SEQUENCING**: Reorder the test cases in a logical flow that makes sense for execution:
+           - Setup/Prerequisites first
+           - Happy path scenarios
+           - Alternative flows
+           - Error/Exception scenarios
+           - Cleanup/Teardown
+        4. **ADD MISSING TEST CASES**: Identify gaps in coverage and add NEW test cases to ensure comprehensive testing
 
-        EXISTING TEST CASES:
+        ORIGINAL TEST CASES PROVIDED BY USER:
         {json.dumps(test_cases, indent=2)}
 
-        ANALYSIS REQUIREMENTS:
-        1. Identify what functionality/features are being tested
-        2. Determine what test scenarios are missing
-        3. Consider different user roles, system states, and data conditions
-        4. Think about integration points, error handling, and edge cases
-        5. Ensure test cases cover happy path, alternative paths, and error paths
+        FLOW ANALYSIS GUIDELINES:
+        - Identify the main user journey or system workflow
+        - Understand dependencies between test cases
+        - Identify which tests should run first (prerequisites)
+        - Group related test cases together
+        - Consider the logical order of operations in the system
 
-        GENERATE ADDITIONAL TEST CASES FOR:
+        ADDITIONAL TEST CASES TO CONSIDER:
+        - Setup and initialization scenarios
         - Boundary value testing
         - Error handling and exception scenarios
         - Different user roles/actors
         - Data validation scenarios
-        - Integration points
-        - Performance considerations
-        - Security aspects (if applicable)
-        - User experience flows
+        - Integration points between components
+        - Edge cases and corner cases
+        - Negative testing scenarios
+        - Cleanup and teardown scenarios
 
-        IMPORTANT: Return ONLY a valid JSON array of test cases. Each test case must have:
-        - id: string
+        OUTPUT REQUIREMENTS:
+        Return ONLY a valid JSON array with:
+        - ALL {len(test_cases)} original test cases (with their original IDs preserved)
+        - Any NEW test cases you generate (give them unique IDs like "NEW_TC_001", "NEW_TC_002", etc.)
+        - Test cases ordered in logical execution sequence
+        
+        Each test case must have:
+        - id: string (keep original IDs for user test cases, create new IDs for generated ones)
         - title: string
         - description: string
         - steps: array of objects with step_number, actor, action, expected
         - actors: array of strings
         - expected: string
 
-        Return a comprehensive list of test cases that includes both enhanced versions of existing ones and new test cases to ensure complete coverage.
+        CRITICAL: Do NOT skip or remove any of the original {len(test_cases)} test case(s). All must be present in your output.
         """
 
         resp = agent.run(analysis_prompt)
@@ -134,6 +155,27 @@ def enrich_test_cases_with_ai(test_cases: list, openai_api_key: str = None) -> l
             result = json.loads(content)
             if isinstance(result, list):
                 print(f"✓ Successfully parsed {len(result)} test cases from AI response")
+                
+                # Validate that all original test cases are included
+                original_ids = {tc.get('id') for tc in test_cases}
+                result_ids = {tc.get('id') for tc in result}
+                missing_ids = original_ids - result_ids
+                
+                if missing_ids:
+                    print(f"⚠ WARNING: {len(missing_ids)} original test case(s) missing from AI response: {missing_ids}")
+                    print(f"⚠ Adding missing test cases back to the result")
+                    # Add missing test cases back
+                    missing_cases = [tc for tc in test_cases if tc.get('id') in missing_ids]
+                    result.extend(missing_cases)
+                    print(f"✓ Total test cases after adding missing ones: {len(result)}")
+                else:
+                    print(f"✓ All {len(original_ids)} original test cases are present in AI response")
+                
+                # Count new test cases added
+                new_test_cases = len(result) - len(test_cases)
+                if new_test_cases > 0:
+                    print(f"✓ AI added {new_test_cases} new test case(s) for better coverage")
+                
                 return result
             else:
                 print(f"✗ AI response is not a list: {type(result)}")
@@ -401,6 +443,69 @@ def construct_test_cases_from_csv(csv_path: str, openai_api_key: str = None) -> 
     return test_cases
 
 
+def _fix_invalid_plantuml_code(invalid_code: str, error_message: str) -> str:
+    """
+    Use AI to fix invalid PlantUML syntax.
+    """
+    try:
+        print("=== FIXING INVALID PLANTUML CODE ===")
+        print(f"Error message: {error_message[:200]}...")
+        
+        agent = Agent(
+            name="PlantUML Syntax Fixer",
+            model=OpenAIChat(id="gpt-4o-mini"),
+            instructions=[
+                "You are an expert in PlantUML syntax.",
+                "Fix the provided invalid PlantUML code to make it syntactically correct.",
+                "Common issues to fix:",
+                "- Missing @startuml or @enduml tags",
+                "- Invalid participant/actor declarations",
+                "- Incorrect arrow syntax (should be -> or --> or ->>)",
+                "- Missing quotes around names with spaces",
+                "- Invalid color or style syntax",
+                "- Unclosed alt/loop/opt blocks",
+                "- Invalid note syntax",
+                "Preserve the semantic meaning and flow of the diagram.",
+                "Return ONLY valid PlantUML code in ```plantuml fenced block```."
+            ],
+            markdown=True,
+        )
+        
+        fix_prompt = f"""
+        The following PlantUML code has a syntax error and failed to render:
+        
+        ERROR MESSAGE:
+        {error_message}
+        
+        INVALID PLANTUML CODE:
+        ```plantuml
+        {invalid_code}
+        ```
+        
+        Please fix the syntax errors and return valid PlantUML code that will render successfully.
+        Make minimal changes to preserve the original intent.
+        Ensure all PlantUML syntax rules are followed.
+        """
+        
+        resp = agent.run(fix_prompt)
+        fixed_code = _extract_code_block(resp.content if hasattr(resp, "content") else str(resp), lang_hint="plantuml")
+        
+        print(f"✓ Fixed PlantUML code generated (length: {len(fixed_code)})")
+        print(f"Fixed code preview: {fixed_code[:200]}...")
+        
+        return fixed_code
+        
+    except Exception as e:
+        print(f"✗ Failed to fix PlantUML code: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        # Return a minimal valid PlantUML diagram as fallback
+        return """@startuml
+title Error: Could not generate diagram
+note over System: The AI generated invalid PlantUML syntax\\nand automatic fixing failed.\\nPlease try regenerating the diagram.
+@enduml"""
+
+
 def _write_test_cases_to_temp_csv(test_cases: list) -> str:
     tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False, encoding="utf-8", newline="")
     fieldnames = ["test_case_id", "title", "step_number", "actor", "action", "expected"]
@@ -521,12 +626,42 @@ def process_csv_and_generate(csv_path: str = None, output_dir: str = ".", test_c
             raise
 
         print("Rendering PlantUML to image...")
-        try:
-            img_path = render_plantuml_from_text(plantuml_code, output_dir=output_dir, filename_base="e2e_test_diagram")
-            print(f"✓ Image generated successfully at: {img_path}")
-        except Exception as e:
-            print(f"✗ ERROR rendering PlantUML: {str(e)}")
-            raise
+        max_retries = 2
+        retry_count = 0
+        img_path = None
+        
+        while retry_count <= max_retries:
+            try:
+                if retry_count > 0:
+                    print(f"Retry attempt {retry_count}/{max_retries}...")
+                
+                img_path = render_plantuml_from_text(plantuml_code, output_dir=output_dir, filename_base="e2e_test_diagram")
+                print(f"✓ Image generated successfully at: {img_path}")
+                break  # Success, exit retry loop
+                
+            except PlantUMLSyntaxError as syntax_error:
+                print(f"✗ PlantUML syntax error on attempt {retry_count + 1}: {str(syntax_error)[:200]}")
+                
+                if retry_count < max_retries:
+                    print(f"⚠ Attempting to fix invalid PlantUML syntax (attempt {retry_count + 1}/{max_retries})...")
+                    try:
+                        # Use AI to fix the invalid code
+                        plantuml_code = _fix_invalid_plantuml_code(plantuml_code, str(syntax_error))
+                        print(f"✓ Generated fixed PlantUML code, retrying render...")
+                        retry_count += 1
+                    except Exception as fix_error:
+                        print(f"✗ Failed to fix PlantUML code: {str(fix_error)}")
+                        raise syntax_error
+                else:
+                    print(f"✗ Max retries ({max_retries}) reached, giving up")
+                    raise syntax_error
+                    
+            except Exception as e:
+                print(f"✗ ERROR rendering PlantUML: {str(e)}")
+                raise
+        
+        if not img_path:
+            raise Exception("Failed to generate PlantUML image after all retries")
 
         print("Extracting actors and activities...")
         try:
@@ -578,19 +713,50 @@ def _extract_activities_from_plantuml(plantuml_code: str) -> list:
 
 
 def refine_plantuml_code(plantuml_code: str, message: str, output_dir: str):
+    """
+    Refine PlantUML code based on user message with automatic error handling.
+    """
     try:
         agent = Agent(
             name="PlantUML Refiner",
             model=OpenAIChat(id="gpt-4o-mini"),
             instructions=[
                 "Modify the provided PlantUML code according to user request.",
+                "Ensure the output is valid PlantUML syntax.",
                 "Return ONLY fenced ```plantuml code```.",
             ],
             markdown=True,
         )
         resp = agent.run(f"```plantuml\n{plantuml_code}\n```\n\nUser request: {message}")
         updated_code = _extract_code_block(resp.content, lang_hint="plantuml")
-        img_path = render_plantuml_from_text(updated_code, output_dir=output_dir, filename_base="e2e_test_diagram")
+        
+        # Render with retry logic for syntax errors
+        max_retries = 2
+        retry_count = 0
+        img_path = None
+        
+        while retry_count <= max_retries:
+            try:
+                if retry_count > 0:
+                    print(f"Retry attempt {retry_count}/{max_retries}...")
+                
+                img_path = render_plantuml_from_text(updated_code, output_dir=output_dir, filename_base="e2e_test_diagram")
+                print(f"✓ Refined diagram generated successfully")
+                break  # Success
+                
+            except PlantUMLSyntaxError as syntax_error:
+                print(f"✗ PlantUML syntax error in refined code: {str(syntax_error)[:200]}")
+                
+                if retry_count < max_retries:
+                    print(f"⚠ Attempting to fix invalid PlantUML syntax...")
+                    updated_code = _fix_invalid_plantuml_code(updated_code, str(syntax_error))
+                    retry_count += 1
+                else:
+                    raise syntax_error
+                    
+            except Exception as e:
+                print(f"✗ ERROR rendering refined PlantUML: {str(e)}")
+                raise
 
         return {
             "success": True,
@@ -600,4 +766,7 @@ def refine_plantuml_code(plantuml_code: str, message: str, output_dir: str):
             "activities": _extract_activities_from_plantuml(updated_code),
         }
     except Exception as e:
+        print(f"✗ Failed to refine PlantUML: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return {"success": False, "error": str(e), "plantuml_code": None, "plantuml_image": None, "actors": [], "activities": []}

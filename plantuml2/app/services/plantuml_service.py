@@ -4,6 +4,11 @@ from pathlib import Path
 
 PLANTUML_JAR = Path(__file__).resolve().parents[1] / "plantuml.jar"  # backend/plantuml.jar
 
+
+class PlantUMLSyntaxError(Exception):
+    """Custom exception for PlantUML syntax errors"""
+    pass
+
 def render_plantuml_from_text(puml_text: str, output_dir: str, filename_base: str = "plantuml"):
     """
     Write a .puml and call local plantuml.jar to render a PNG.
@@ -51,7 +56,21 @@ def render_plantuml_from_text(puml_text: str, output_dir: str, filename_base: st
         print(f"Running PlantUML command: {' '.join(cmd)}")
         print(f"Working directory: {outdir}")
         
-        result = subprocess.run(cmd, check=True, cwd=str(outdir), capture_output=True, text=True)
+        result = subprocess.run(cmd, cwd=str(outdir), capture_output=True, text=True)
+        
+        # Check for errors (exit code 200 means PlantUML syntax error)
+        if result.returncode != 0:
+            error_msg = f"PlantUML rendering failed with exit code {result.returncode}\n"
+            error_msg += f"STDOUT: {result.stdout}\n"
+            error_msg += f"STDERR: {result.stderr}\n"
+            print(f"✗ {error_msg}")
+            
+            if result.returncode == 200:
+                # Syntax error in PlantUML code
+                raise PlantUMLSyntaxError(f"Invalid PlantUML syntax. {error_msg}")
+            else:
+                raise Exception(error_msg)
+        
         print(f"✓ PlantUML command executed successfully")
         print(f"PlantUML stdout: {result.stdout}")
         if result.stderr:

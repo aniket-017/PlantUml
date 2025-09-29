@@ -1,26 +1,64 @@
 @startuml
-actor User
-actor System
+actor Customer
+actor Pharmacist
+actor "QA Engineer" as QA
+participant "EPS" as eps
+participant "Kafka" as kafka
+participant "GenRx Engine" as ge
+participant "TMX" as tmx
+participant "ACS" as acs
+participant "Payment Gateway" as pg
+participant "CSX" as csx
 
-User -> User : Login to portal
-User -> User : Fill required details
-User -> System : Click Submit
-System -> User : Request successfully submitted
-User -> User : Verify Request ID syncs with SAP
+== Setup and Initialization for Test Cases ==
+QA -> eps : Verify valid patient data
+QA -> kafka : Ensure CSX is connected
+QA -> eps : Confirm access rights
+QA -> QA : All systems operational
 
-User -> User : Try submitting form without required data
-User -> System : Click Submit
-System -> User : System shows error for missing fields
+== Identify Patient and Fetch Prescriptions ==
+Customer -> csx : Enter identification
+csx -> kafka : Send identification data
+kafka -> ge : Forward identification data
+ge -> eps : Fetch patient/prescription data
+eps -> ge : Return patient/prescription data
+ge -> kafka : Push data to Kafka
+kafka -> tmx : Deliver prescription data
+tmx -> Pharmacist : Display complete prescription list
+tmx -> csx : Share copay amount
 
-User -> User : Submit request
-User -> System : Resubmit same request
-System -> User : System prevents duplicate OR assigns unique IDs
+== Verify Patient Safety Validation ==
+Pharmacist -> tmx : Perform scan-scan validation
+tmx -> kafka : Send scanned prescription data
+kafka -> ge : Forward data to GE
+ge -> eps : Validate safety
+eps -> ge : Return validation result
+ge -> kafka : Push validation result
+kafka -> tmx : Deliver validation status
+tmx -> Pharmacist : Display validation status
 
-System -> System : Update status in SAP (e.g., Fulfilled)
-System -> User : Frontend shows updated status
+== Complete Compliance Document Review and Signature ==
+Pharmacist -> tmx : Initiate compliance request
+tmx -> kafka : Send request to GE
+ge -> eps : Store compliance request
+eps -> ge : Acknowledge compliance record
+ge -> kafka : Deliver compliance acknowledgment
+kafka -> tmx : Display compliance document
+tmx -> csx : Present for review/signature
+csx -> tmx : Send signed document back
+tmx -> kafka : Save compliance signature record
+kafka -> eps : Confirm update
+ge -> kafka : Deliver completion status
 
-User -> User : Submit request
-User -> System : Process in SAP
-System -> System : Complete fulfillment
-System -> User : User notified of completion
+== Process Payment and Update EPS ==
+Pharmacist -> tmx : Initiate payment transaction
+tmx -> kafka : Send payment request to ACS
+acs -> pg : Process payment
+pg -> acs : Return payment success confirmation
+acs -> kafka : Payment success notification
+ge -> eps : Update payment details
+eps -> ge : Acknowledge update
+ge -> kafka : Deliver payment success status
+tmx -> Customer : Display transaction completion confirmation
+
 @enduml

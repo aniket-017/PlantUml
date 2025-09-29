@@ -1,0 +1,116 @@
+@startuml PlantUML Test Case Generator - System Architecture
+
+!theme cerulean
+skinparam backgroundColor #F8FAFC
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam packagePadding 15
+skinparam componentPadding 10
+skinparam roundcorner 10
+
+title <size:18><b>PlantUML Test Case Generator</b></size>\n<size:14>System Architecture</size>
+
+package "🎨 Frontend (React)" #E8F5E8 {
+    [Landing Page] as LP #C8E6C9
+    [File Upload] as FU #C8E6C9
+    [Test Editor] as TCE #C8E6C9
+    [Diagram Viewer] as DV #C8E6C9
+    [Chat Interface] as CI #C8E6C9
+    [Step Indicator] as SI #C8E6C9
+}
+
+package "🧠 State Management" #E3F2FD {
+    [App Context] as AC #BBDEFB
+    [API Service] as API #BBDEFB
+}
+
+package "⚡ Backend (FastAPI)" #FFF3E0 {
+    [Main App] as MA #FFE0B2
+    [CORS Middleware] as CM #FFE0B2
+    [Static Server] as SFS #FFE0B2
+}
+
+package "🤖 AI Services" #F3E5F5 {
+    [OpenAI API] as OAI #E1BEE7
+    [PhiData Agents] as PDF #E1BEE7
+    [Test Analyzer] as TCA #E1BEE7
+    [Code Generator] as CG #E1BEE7
+}
+
+package "📊 Data Processing" #E0F2F1 {
+    [CSV Service] as CSV #B2DFDB
+    [PlantUML Engine] as PE #B2DFDB
+    [File Utils] as FU2 #B2DFDB
+}
+
+package "💾 Storage" #FCE4EC {
+    [Uploads] as UD #F8BBD9
+    [Generated Files] as GF #F8BBD9
+}
+
+' Main flow connections
+LP --> FU
+FU --> TCE
+TCE --> DV
+DV --> CI
+SI --> LP
+SI --> FU
+SI --> TCE
+SI --> DV
+SI --> CI
+
+' State management
+AC --> LP
+AC --> FU
+AC --> TCE
+AC --> DV
+AC --> CI
+API --> MA
+
+' Backend flow
+MA --> CM
+MA --> SFS
+MA --> CSV
+MA --> PE
+
+' AI integration
+CSV --> TCA
+CSV --> CG
+TCA --> OAI
+CG --> OAI
+PDF --> TCA
+PDF --> CG
+
+' Data processing
+CSV --> FU2
+PE --> FU2
+FU2 --> UD
+FU2 --> GF
+UD --> CSV
+GF --> SFS
+
+note right of OAI #E1BEE7
+  <b>🤖 AI Capabilities:</b>
+  • Test case enhancement
+  • Flow analysis
+  • PlantUML generation
+  • Code refinement
+end note
+
+note right of PDF #E1BEE7
+  <b>🧠 PhiData Framework:</b>
+  • Agent-based workflows
+  • Direct OpenAI integration
+  • Specialized CSV tools
+  • Markdown support
+end note
+
+note right of PE #B2DFDB
+  <b>📊 PlantUML Engine:</b>
+  • Java-based generation
+  • Sequence diagrams
+  • PNG output
+  • PUML files
+end note
+
+@enduml

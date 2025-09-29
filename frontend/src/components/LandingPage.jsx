@@ -125,8 +125,8 @@ const LandingPage = () => {
       <footer className="bg-gray-900 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h3 className="text-2xl font-bold text-white mb-4">PlantUML Test Case Generator</h3>
-            <p className="text-gray-400 mb-6">Powered by OpenAI and PlantUML</p>
+            <h3 className="text-2xl font-bold text-white mb-4">Test Case Generator</h3>
+            
             <div className="flex justify-center space-x-6">
               <div className="flex items-center text-gray-400">
                 <Key className="h-5 w-5 mr-2" />
@@ -149,4 +149,6 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+
+
 

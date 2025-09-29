@@ -4,6 +4,7 @@ import { apiService } from "../services/api";
 import { useApp } from "../hooks/useApp";
 import { setLoading, setError, setTestCases, setUploadedFile, setStep, setApiKey } from "../context/actions";
 import { storage } from "../utils/storage";
+import LoadingSpinner from "./LoadingSpinner";
 
 const FileUpload = () => {
   const { state, dispatch } = useApp();
@@ -80,6 +81,14 @@ const FileUpload = () => {
     }
   };
 
+  if (state.loading) {
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-blue-900 via-blue-700 to-indigo-800 z-50 flex items-center justify-center">
+        <LoadingSpinner type="testCases" text="AI is analyzing your file..." subText="This may take a few moments..." />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto p-4 sm:p-6">
       <div className="text-center mb-6 sm:mb-8">
@@ -98,11 +107,7 @@ const FileUpload = () => {
 
       <div
         className={`relative border-2 border-dashed rounded-lg p-4 sm:p-8 text-center transition-colors ${
-          dragActive
-            ? "border-blue-400 bg-blue-50"
-            : state.loading
-            ? "border-gray-200 bg-gray-50"
-            : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+          dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
         }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -119,29 +124,21 @@ const FileUpload = () => {
         />
 
         <div className="space-y-4">
-          {state.loading ? (
-            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto"></div>
-          ) : (
-            <Upload className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto" />
-          )}
+          <Upload className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto" />
 
           <div>
-            <p className="text-base sm:text-lg font-medium text-gray-700">
-              {state.loading ? "Processing your file..." : "Drop your file here or click to browse"}
-            </p>
+            <p className="text-base sm:text-lg font-medium text-gray-700">Drop your file here or click to browse</p>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">Supports CSV and Excel files (.csv, .xlsx, .xls)</p>
           </div>
 
-          {!state.loading && (
-            <button
-              type="button"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm sm:text-base"
-              onClick={() => document.getElementById("file-upload").click()}
-            >
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Choose File
-            </button>
-          )}
+          <button
+            type="button"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm sm:text-base"
+            onClick={() => document.getElementById("file-upload").click()}
+          >
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            Choose File
+          </button>
         </div>
       </div>
 

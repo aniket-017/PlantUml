@@ -1,0 +1,38 @@
+Test Case ID,Title,Preconditions,Steps,Expected Results
+E2E-001,Identify patient and fetch prescriptions,Customer has valid identification data in EPS system; CSX is online and connected to Kafka,"1. Customer enters identification on CSX and clicks Continue
+2. CSX sends identification data to Kafka
+3. Kafka forwards the data to GenRx Engine (GE)
+4. GE fetches patient and prescription data from EPS
+5. EPS returns prescription and patient data
+6. GE pushes data to Kafka
+7. Kafka delivers prescription data to TMX
+8. TMX displays full prescription list to Pharmacist
+9. TMX shares limited details (copay amount) with CSX",Customer sees copay amount on CSX; Pharmacist sees complete prescription list on TMX; Prescription and patient details are retrieved correctly
+E2E-002,Verify patient safety validation,Prescription is identified and visible in TMX,"1. Pharmacist performs scan-scan validation on TMX
+2. TMX sends scanned prescription data to Kafka
+3. Kafka forwards data to GE
+4. GE validates safety with EPS
+5. EPS returns validation result
+6. GE pushes validation result to Kafka
+7. Kafka delivers status to TMX
+8. Pharmacist receives validation status on TMX",If safety passes → Pharmacist proceeds; If safety fails → TMX prompts Pharmacist to halt or take corrective steps
+E2E-003,Complete compliance document review and signature,Safety validation is completed,"1. Pharmacist initiates compliance request on TMX
+2. TMX sends request via Kafka to GE
+3. GE stores request in EPS
+4. EPS acknowledges compliance record
+5. GE → Kafka → TMX: Compliance acknowledgment delivered
+6. TMX displays compliance document to CSX
+7. Customer reviews and signs on CSX
+8. CSX sends signed document back to TMX
+9. TMX → Kafka → GE → EPS: Save compliance signature record
+10. EPS confirms update
+11. GE → Kafka → TMX: Compliance completion status delivered",Customer can view and sign compliance document successfully; Signed document is saved in EPS; TMX shows compliance completion to Pharmacist
+E2E-004,Process payment and update EPS,Compliance process completed successfully,"1. Pharmacist initiates payment transaction on TMX
+2. TMX → Kafka → ACS: Payment request initiated
+3. ACS → Payment Gateway (PG): Process payment
+4. PG → ACS: Return payment success confirmation
+5. ACS → Kafka → GE: Payment success notification
+6. GE → EPS: Update payment details in system
+7. EPS → GE: Acknowledge update
+8. GE → Kafka → TMX: Deliver payment success status
+9. TMX → Customer: Display confirmation of transaction completion",Payment successfully processed via PG; ACS and EPS updated with transaction details; TMX confirms completion to Customer

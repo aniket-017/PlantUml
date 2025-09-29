@@ -1,0 +1,75 @@
+@startuml PlantUML Test Case Generator - Application Workflow
+
+!theme cerulean
+skinparam backgroundColor #F8FAFC
+skinparam sequenceArrowThickness 3
+skinparam roundcorner 15
+skinparam maxmessagesize 50
+skinparam participantPadding 20
+skinparam boxPadding 10
+
+title <size:18><b>PlantUML Test Case Generator</b></size>\n<size:14>Complete Application Workflow</size>
+
+actor User as U #E3F2FD
+participant "React Frontend" as F #E8F5E8
+participant "FastAPI Backend" as B #FFF3E0
+participant "AI Services" as AI #F3E5F5
+participant "PlantUML Engine" as P #E0F2F1
+participant "File System" as FS #FCE4EC
+
+== 🚀 Initialization ==
+U -> F: Access Application
+F -> F: Show Landing Page
+U -> F: Enter OpenAI API Key
+F -> F: Navigate to File Upload
+
+== 📁 File Processing ==
+U -> F: Upload CSV/Excel File
+F -> B: POST /upload-csv/
+B -> FS: Save uploaded file
+alt Excel File
+    B -> B: Convert to CSV
+end
+B -> AI: Process & analyze data
+AI -> AI: Generate test cases
+AI --> B: Return test cases
+B --> F: Return JSON data
+F -> F: Navigate to Editor
+
+== ✏️ Test Case Editing ==
+F -> F: Display test cases
+U -> F: Edit test cases
+U -> F: Click "Generate Diagram"
+
+== 🎨 Diagram Generation ==
+F -> B: POST /generate-diagram/
+B -> AI: Send test cases
+AI -> AI: Analyze flow & actors
+AI -> AI: Generate PlantUML code
+AI --> B: Return PlantUML code
+B -> P: Execute PlantUML JAR
+P -> FS: Save .puml & .png files
+P --> B: Return file paths
+B --> F: Return diagram data
+F -> F: Navigate to Viewer
+
+== 💬 Interactive Chat ==
+F -> F: Display diagram
+U -> F: Send modification request
+F -> B: POST /chat-plantuml/
+B -> AI: Refine PlantUML code
+AI --> B: Return updated code
+B -> P: Regenerate diagram
+P --> B: Return new files
+B --> F: Return updated diagram
+F -> F: Update display
+
+note over F, B #FFE0B2
+  <b>Error Handling:</b> Comprehensive error management\nthroughout all phases
+end note
+
+note over F #E8F5E8
+  <b>State Management:</b> React Context\nlanding → api-key → upload → edit → diagram → chat
+end note
+
+@enduml

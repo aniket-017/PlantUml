@@ -1,1 +1,907 @@
 @import "tailwindcss";
+
+/* Flowchart Generator Loader Styles */
+.loader-container {
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 2rem;
+}
+
+.construction-area {
+  width: 350px;
+  height: 350px;
+  position: relative;
+  margin: 0 auto 30px;
+}
+
+/* Test Case Documents Flying In */
+.test-documents {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.test-doc {
+  position: absolute;
+  width: 50px;
+  height: 60px;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  animation: flyIn 4s ease-in-out infinite;
+}
+
+.test-doc::before {
+  content: '';
+  width: 30px;
+  height: 3px;
+  background: #667eea;
+  margin: 3px 0;
+  border-radius: 2px;
+}
+
+.test-doc::after {
+  content: '';
+  width: 25px;
+  height: 3px;
+  background: #ddd;
+  margin: 2px 0;
+  border-radius: 2px;
+}
+
+.test-doc:nth-child(1) {
+  top: -60px;
+  left: 20px;
+  animation-delay: 0s;
+}
+
+.test-doc:nth-child(2) {
+  top: -60px;
+  right: 20px;
+  animation-delay: 0.8s;
+}
+
+.test-doc:nth-child(3) {
+  top: -60px;
+  left: 80px;
+  animation-delay: 1.6s;
+}
+
+.test-doc:nth-child(4) {
+  top: -60px;
+  right: 80px;
+  animation-delay: 2.4s;
+}
+
+/* Central Processing Brain */
+.processing-brain {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  border-radius: 50%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s ease-in-out infinite;
+  z-index: 10;
+}
+
+.brain-icon {
+  width: 60px;
+  height: 60px;
+  position: relative;
+}
+
+.brain-wave {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid #667eea;
+  border-radius: 50%;
+  animation: brainWave 2s ease-out infinite;
+}
+
+.brain-wave:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.brain-wave:nth-child(3) {
+  animation-delay: 1s;
+}
+
+/* Flowchart Nodes Being Built */
+.building-nodes {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.building-node {
+  position: absolute;
+  opacity: 0;
+  animation: buildNode 4s ease-in-out infinite;
+}
+
+.node-shape {
+  background: white;
+  border: 3px solid #4ecdc4;
+  box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+}
+
+.building-node:nth-child(1) .node-shape {
+  width: 70px;
+  height: 35px;
+  border-radius: 20px;
+}
+
+.building-node:nth-child(1) {
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: 1.5s;
+}
+
+.building-node:nth-child(2) .node-shape {
+  width: 50px;
+  height: 50px;
+  transform: rotate(45deg);
+}
+
+.building-node:nth-child(2) {
+  top: 90px;
+  right: 60px;
+  animation-delay: 2s;
+}
+
+.building-node:nth-child(3) .node-shape {
+  width: 60px;
+  height: 40px;
+  border-radius: 5px;
+}
+
+.building-node:nth-child(3) {
+  bottom: 80px;
+  left: 40px;
+  animation-delay: 2.5s;
+}
+
+.building-node:nth-child(4) .node-shape {
+  width: 60px;
+  height: 40px;
+  border-radius: 5px;
+}
+
+.building-node:nth-child(4) {
+  bottom: 80px;
+  right: 40px;
+  animation-delay: 2.8s;
+}
+
+.building-node:nth-child(5) .node-shape {
+  width: 70px;
+  height: 35px;
+  border-radius: 20px;
+}
+
+.building-node:nth-child(5) {
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: 3.2s;
+}
+
+/* Connection Lines Being Drawn */
+.drawing-line {
+  position: absolute;
+  background: #4ecdc4;
+  box-shadow: 0 0 10px rgba(78, 205, 196, 0.6);
+  animation: drawLine 4s ease-in-out infinite;
+}
+
+.drawing-line.line1 {
+  width: 3px;
+  height: 0;
+  top: 65px;
+  left: 50%;
+  animation-delay: 2.2s;
+}
+
+.drawing-line.line2 {
+  width: 3px;
+  height: 0;
+  bottom: 55px;
+  left: 50%;
+  animation-delay: 3.4s;
+}
+
+/* Robot Builder */
+.robot-builder {
+  position: absolute;
+  bottom: -20px;
+  left: -70px;
+  width: 60px;
+  height: 80px;
+  animation: robotWork 3s ease-in-out infinite;
+}
+
+.robot-body {
+  width: 40px;
+  height: 50px;
+  background: linear-gradient(145deg, #ffffff, #e0e0e0);
+  border-radius: 8px;
+  margin: 0 auto;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.robot-head-small {
+  width: 30px;
+  height: 25px;
+  background: linear-gradient(145deg, #ffffff, #e0e0e0);
+  border-radius: 5px;
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.robot-eye-small {
+  width: 5px;
+  height: 5px;
+  background: #4ecdc4;
+  border-radius: 50%;
+  position: absolute;
+  top: 8px;
+}
+
+.robot-eye-small.left {
+  left: 8px;
+}
+
+.robot-eye-small.right {
+  right: 8px;
+}
+
+.robot-arm {
+  width: 8px;
+  height: 30px;
+  background: linear-gradient(145deg, #ffffff, #e0e0e0);
+  border-radius: 5px;
+  position: absolute;
+  top: 5px;
+}
+
+.robot-arm.left {
+  left: -10px;
+  animation: hammerLeft 1s ease-in-out infinite;
+}
+
+.robot-arm.right {
+  right: -10px;
+  animation: hammerRight 1s ease-in-out infinite;
+}
+
+/* Status Text */
+.status-container {
+  margin-top: 20px;
+}
+
+.status-text {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 10px;
+}
+
+.sub-text {
+  color: #4ecdc4;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.progress-bar {
+  width: 250px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  margin: 15px auto;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4ecdc4, #44a9a0);
+  border-radius: 10px;
+  animation: progress 4s ease-in-out infinite;
+  box-shadow: 0 0 10px #4ecdc4;
+}
+
+/* Animations */
+@keyframes flyIn {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  30% {
+    transform: translateY(180px) scale(0.8);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(180px) scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+  }
+}
+
+@keyframes brainWave {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes buildNode {
+  0%, 30% {
+    opacity: 0;
+    transform: scale(0.5) translateX(-50%);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.2) translateX(-50%);
+  }
+  50%, 100% {
+    opacity: 1;
+    transform: scale(1) translateX(-50%);
+  }
+}
+
+@keyframes drawLine {
+  0%, 50% {
+    height: 0;
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  80%, 100% {
+    height: 25px;
+    opacity: 1;
+  }
+}
+
+@keyframes robotWork {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes hammerLeft {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-30deg);
+  }
+}
+
+@keyframes hammerRight {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(30deg);
+  }
+}
+
+@keyframes progress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+/* Legacy AI Loading Animations (kept for compatibility) */
+@keyframes ai-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes ai-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes ai-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 30px rgba(99, 102, 241, 0.4);
+  }
+}
+
+@keyframes ai-rotate-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ai-rotate-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes ai-wave {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.5);
+  }
+}
+
+/* Apply custom animations */
+.ai-pulse {
+  animation: ai-pulse 2s ease-in-out infinite;
+}
+
+.ai-float {
+  animation: ai-float 3s ease-in-out infinite;
+}
+
+.ai-glow {
+  animation: ai-glow 2s ease-in-out infinite;
+}
+
+.ai-rotate-slow {
+  animation: ai-rotate-slow 3s linear infinite;
+}
+
+.ai-rotate-reverse {
+  animation: ai-rotate-reverse 2s linear infinite;
+}
+
+.ai-wave {
+  animation: ai-wave 1.5s ease-in-out infinite;
+}
+
+/* Test Case Generator Loader Styles */
+.loader-container-tc {
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 2rem;
+}
+
+.flowchart-container-tc {
+  width: 300px;
+  height: 320px;
+  position: relative;
+  margin: 0 auto 30px;
+}
+
+.node-tc {
+  position: absolute;
+  background: white;
+  border: 3px solid #4ecdc4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  animation: nodeGlowTc 2s ease-in-out infinite;
+}
+
+.node-tc.start {
+  width: 100px;
+  height: 50px;
+  border-radius: 25px;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4ecdc4;
+  color: white;
+}
+
+.node-tc.decision {
+  width: 80px;
+  height: 80px;
+  transform: translateX(-50%) rotate(45deg);
+  top: 80px;
+  left: 50%;
+  animation-delay: 0.5s;
+}
+
+.node-tc.decision span {
+  transform: rotate(-45deg);
+}
+
+.node-tc.process1 {
+  width: 90px;
+  height: 60px;
+  border-radius: 8px;
+  top: 190px;
+  left: 30px;
+  animation-delay: 1s;
+}
+
+.node-tc.process2 {
+  width: 90px;
+  height: 60px;
+  border-radius: 8px;
+  top: 190px;
+  right: 30px;
+  animation-delay: 1s;
+}
+
+.node-tc.end {
+  width: 100px;
+  height: 50px;
+  border-radius: 25px;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4ecdc4;
+  color: white;
+  animation-delay: 1.5s;
+}
+
+/* Connecting Lines */
+.line-tc {
+  position: absolute;
+  background: #4ecdc4;
+  box-shadow: 0 0 10px #4ecdc4;
+}
+
+.line-tc.vertical1 {
+  width: 4px;
+  height: 30px;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: flowDownTc 2s ease-in-out infinite;
+}
+
+.line-tc.vertical2 {
+  width: 4px;
+  height: 40px;
+  top: 250px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: flowDownTc 2s ease-in-out infinite 1.5s;
+}
+
+.line-tc.diagonal-left {
+  width: 4px;
+  height: 70px;
+  top: 135px;
+  left: 105px;
+  transform: rotate(-45deg);
+  animation: flowDownTc 2s ease-in-out infinite 0.7s;
+}
+
+.line-tc.diagonal-right {
+  width: 4px;
+  height: 70px;
+  top: 135px;
+  right: 105px;
+  transform: rotate(45deg);
+  animation: flowDownTc 2s ease-in-out infinite 0.7s;
+}
+
+/* Test Case Cards */
+.test-cases-tc {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.test-card-tc {
+  position: absolute;
+  width: 60px;
+  height: 40px;
+  background: white;
+  border: 2px solid #ff6b6b;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: #ff6b6b;
+  opacity: 0;
+  animation: testCardFloatTc 3s ease-in-out infinite;
+}
+
+.test-card-tc:nth-child(1) {
+  top: 20px;
+  left: 20px;
+  animation-delay: 0s;
+}
+
+.test-card-tc:nth-child(2) {
+  top: 40px;
+  right: 30px;
+  animation-delay: 0.8s;
+}
+
+.test-card-tc:nth-child(3) {
+  top: 150px;
+  left: 10px;
+  animation-delay: 1.6s;
+}
+
+.test-card-tc:nth-child(4) {
+  top: 170px;
+  right: 15px;
+  animation-delay: 2.4s;
+}
+
+/* Robot Assistant */
+.robot-assistant-tc {
+  position: absolute;
+  bottom: -30px;
+  right: -80px;
+  width: 80px;
+  height: 80px;
+}
+
+.robot-head-tc {
+  width: 50px;
+  height: 40px;
+  background: linear-gradient(145deg, #ffffff, #e0e0e0);
+  border-radius: 10px;
+  position: relative;
+  margin: 0 auto;
+  animation: robotThinkTc 2s ease-in-out infinite;
+}
+
+.robot-eye-tc {
+  width: 8px;
+  height: 8px;
+  background: #4ecdc4;
+  border-radius: 50%;
+  position: absolute;
+  top: 12px;
+  animation: eyeBlinkTc 3s ease-in-out infinite;
+}
+
+.robot-eye-tc.left {
+  left: 12px;
+}
+
+.robot-eye-tc.right {
+  right: 12px;
+}
+
+.robot-antenna-tc {
+  width: 2px;
+  height: 15px;
+  background: #666;
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.robot-antenna-tc::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #ff6b6b;
+  border-radius: 50%;
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: blinkTc 1s ease-in-out infinite;
+}
+
+/* Status Text */
+.status-container-tc {
+  margin-top: 20px;
+}
+
+.status-text-tc {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 10px;
+}
+
+.sub-text-tc {
+  color: #4ecdc4;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.progress-bar-tc {
+  width: 250px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  margin: 15px auto;
+  overflow: hidden;
+}
+
+.progress-fill-tc {
+  height: 100%;
+  background: linear-gradient(90deg, #4ecdc4, #44a9a0);
+  border-radius: 10px;
+  animation: progressTc 3s ease-in-out infinite;
+  box-shadow: 0 0 10px #4ecdc4;
+}
+
+/* Animations for Test Case Loader */
+@keyframes nodeGlowTc {
+  0%, 100% {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    box-shadow: 0 5px 25px rgba(78, 205, 196, 0.6);
+    transform: translateX(-50%) scale(1.05);
+  }
+}
+
+@keyframes flowDownTc {
+  0% {
+    opacity: 0;
+    height: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes testCardFloatTc {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-15px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.8);
+  }
+}
+
+@keyframes robotThinkTc {
+  0%, 100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes eyeBlinkTc {
+  0%, 95%, 100% {
+    transform: scaleY(1);
+  }
+  97% {
+    transform: scaleY(0.1);
+  }
+}
+
+@keyframes blinkTc {
+  0%, 50%, 100% {
+    opacity: 1;
+  }
+  25%, 75% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes progressTc {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+/* Test Case Expand/Collapse Animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    max-height: 5000px;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    max-height: 5000px;
+  }
+  to {
+    opacity: 0;
+    max-height: 0;
+  }
+}
