@@ -60,6 +60,7 @@ jobs:
             if [ -d ~/PlantUML ]; then
               cd ~/PlantUML
               git reset --hard
+              git clean -f plantuml2/uploads/
               git pull origin main
             else
               git clone https://github.com/aniket-017/PlantUml.git ~/PlantUML
