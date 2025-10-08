@@ -33,7 +33,10 @@ const ChatInterface = () => {
 
     try {
       setLoading(dispatch, true);
-      const result = await apiService.chatWithPlantUML(state.plantUMLCode, message);
+      const result =
+        state.fileType === "cmdb"
+          ? await apiService.chatWithCmdbPlantUML(state.plantUMLCode, message)
+          : await apiService.chatWithPlantUML(state.plantUMLCode, message);
 
       if (result.success) {
         const botMessage = {

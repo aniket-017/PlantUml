@@ -3,10 +3,12 @@ import { ACTIONS } from "./actions";
 
 // Initial state
 const initialState = {
-  currentStep: "landing", // 'landing', 'api-key', 'upload', 'edit', 'diagram', 'chat'
+  currentStep: "landing", // 'landing', 'api-key', 'file-type', 'upload', 'edit', 'diagram', 'chat'
   apiKey: null,
+  fileType: null, // 'test-cases' or 'cmdb'
   uploadedFile: null,
   testCases: [],
+  cmdbItems: [],
   plantUMLCode: "",
   plantUMLImage: "",
   chatHistory: [],
@@ -32,17 +34,30 @@ const appReducer = (state, action) => {
     case ACTIONS.SET_API_KEY:
       return { ...state, apiKey: action.payload };
 
+    case ACTIONS.SET_FILE_TYPE:
+      return { ...state, fileType: action.payload };
+
     case ACTIONS.SET_UPLOADED_FILE:
       return { ...state, uploadedFile: action.payload };
 
     case ACTIONS.SET_TEST_CASES:
       return { ...state, testCases: action.payload };
 
+    case ACTIONS.SET_CMDB_ITEMS:
+      return { ...state, cmdbItems: action.payload };
+
     case ACTIONS.UPDATE_TEST_CASE: {
       const updatedTestCases = state.testCases.map((tc) =>
         tc.id === action.payload.id ? { ...tc, ...action.payload.updates } : tc
       );
       return { ...state, testCases: updatedTestCases };
+    }
+
+    case ACTIONS.UPDATE_CMDB_ITEM: {
+      const updatedCmdbItems = state.cmdbItems.map((item) =>
+        item.id === action.payload.id ? { ...item, ...action.payload.updates } : item
+      );
+      return { ...state, cmdbItems: updatedCmdbItems };
     }
 
     case ACTIONS.SET_PLANTUML_DATA:

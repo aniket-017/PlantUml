@@ -1,0 +1,14 @@
+CI_ID,CI_Name,CI_Type,Environment,Owner,Parent_CI,Location,Dependencies,Description
+APP001,Online Storefront,Application,Production,Digital Team,SVC001,AWS-US-East,"DB001, API001",Main Walmart.com web application for customers
+SVC001,E-Commerce Platform,Service,Production,Platform Eng,SYS001,AWS-US-East,"APP001, DB001, MQ001","Core platform managing orders, carts, inventory sync"
+DB001,Orders Database,Database,Production,DBA Team,SVC001,AWS RDS,,PostgreSQL instance storing order data
+MQ001,Event Queue,Middleware,Production,Integration Team,SVC001,AWS SQS,"APP001, SVC002",Queue for order events and inventory updates
+SVC002,Inventory Service,Microservice,Production,Supply Chain Team,SYS002,GCP-US-Central,"DB002, MQ001",Manages stock levels across fulfillment centers
+DB002,Inventory DB,Database,Production,DBA Team,SVC002,GCP Cloud SQL,,Stores item and stock details
+APP002,Mobile App API,API Gateway,Production,Mobile Dev Team,SYS001,Azure-US-West,"SVC001, AUTH001",Gateway for Walmart mobile application
+AUTH001,Authentication Service,Service,Production,Security Team,SYS001,Azure-US-West,DB003,Handles customer login and session tokens
+DB003,Auth DB,Database,Production,Security DBA,SYS001,Azure-US-West,,User credential storage
+SYS001,Retail Cloud Cluster,System,Production,Infra Team,,AWS-US-East,,Cluster for front-end and e-commerce workloads
+SYS002,Supply Chain System,System,Production,Infra Team,,GCP-US-Central,,Backend system for fulfillment and logistics
+NET001,Corporate Network,Network,Global,IT Network Team,,Global,"SYS001, SYS002",Corporate backbone connecting all data centers
+MON001,Monitoring Tool,Application,Production,IT Ops,SYS001,AWS-US-East,"SYS001, SYS002","Monitors uptime, latency, and errors"

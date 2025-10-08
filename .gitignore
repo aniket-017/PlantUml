@@ -27,3 +27,7 @@ dist-ssr
 .env
 
 ./plantuml2/uploads/*
+
+./plantuml2/app/main2.py
+./plantuml2/app/main3.py
+./plantuml2/test2.py

@@ -1,0 +1,28 @@
+@startuml
+package "Retail Cloud Architecture" {
+    [Online Storefront] as APP001
+    [E-Commerce Platform] as SVC001
+    [Orders Database] as DB001
+    [Event Queue] as MQ001
+    [Inventory Service] as SVC002
+    [Inventory DB] as DB002
+    [Mobile App API] as APP002
+    [Authentication Service] as AUTH001
+    [Auth DB] as DB003
+    [Retail Cloud Cluster] as SYS001
+
+    APP001 --|> SVC001 : depends_on
+    SVC001 --|> DB001 : depends_on
+    MQ001 --|> SVC001 : used_by
+    SVC002 --|> MQ001 : depends_on
+    SVC002 --|> DB002 : depends_on
+    APP002 --|> SVC001 : depends_on
+    AUTH001 --|> APP002 : provides
+    AUTH001 --|> DB003 : depends_on
+    DB001 --|> SVC001 : used_by
+    APP001 --|> SYS001 : supports
+    SVC001 --|> SYS001 : supports
+    APP002 --|> SYS001 : supports
+    AUTH001 --|> SYS001 : supports
+}
+@enduml

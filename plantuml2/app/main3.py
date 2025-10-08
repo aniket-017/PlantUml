@@ -32,6 +32,9 @@ from app.services.cmdb_service import (
 
 load_dotenv()
 
+# Hardcode API key for testing (remove this in production!)
+HARDCODED_API_KEY = "your key here"
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 UPLOAD_DIR = BASE_DIR / "uploads"
 STATIC_DIR = BASE_DIR / "static"
@@ -98,13 +101,12 @@ async def upload_csv(request: Request, file: UploadFile = File(...)):
         logger.info(f"Processing file: {file.filename}")
         logger.info(f"File size: {dest.stat().st_size} bytes")
         
-        # Get API key from request headers
-        openai_key = request.headers.get("X-OpenAI-API-Key")
-        if not openai_key:
-            logger.warning("No OpenAI API key provided in headers - AI enhancement will be skipped")
-            logger.warning("For comprehensive test case generation, please provide OpenAI API key in X-OpenAI-API-Key header")
+        # Get API key from request headers or use hardcoded for testing
+        openai_key = request.headers.get("X-OpenAI-API-Key") or HARDCODED_API_KEY
+        if openai_key == HARDCODED_API_KEY:
+            logger.info("Using hardcoded API key for testing")
         else:
-            logger.info(f"✓ OpenAI API Key found (length: {len(openai_key)})")
+            logger.info(f"✓ OpenAI API Key found in headers (length: {len(openai_key)})")
         
         # Step 1: Construct initial test cases from CSV
         logger.info("Step 1: Constructing initial test cases from CSV...")
@@ -151,9 +153,9 @@ async def generate_diagram(request: Request, body: dict = Body(...)):
         test_cases = body.get("test_cases")
         if not test_cases or not isinstance(test_cases, list):
             raise HTTPException(status_code=400, detail="No test_cases provided")
-        openai_key = request.headers.get("X-OpenAI-API-Key")
-        if not openai_key:
-            raise HTTPException(status_code=400, detail="OpenAI API key is required. Please provide it in the X-OpenAI-API-Key header.")
+        openai_key = request.headers.get("X-OpenAI-API-Key") or HARDCODED_API_KEY
+        if openai_key == HARDCODED_API_KEY:
+            logger.info("Using hardcoded API key for testing")
         os.environ["OPENAI_API_KEY"] = openai_key
 
         result = process_csv_and_generate(csv_path=None, output_dir=str(STATIC_DIR), test_cases=test_cases)
@@ -173,9 +175,9 @@ async def chat_plantuml(request: Request, body: dict = Body(...)):
     user_message = body.get("message")
     if not plantuml_code or not user_message:
         raise HTTPException(status_code=400, detail="plantuml_code and message are required")
-    openai_key = request.headers.get("X-OpenAI-API-Key")
-    if not openai_key:
-        raise HTTPException(status_code=400, detail="OpenAI API key is required. Please provide it in the X-OpenAI-API-Key header.")
+    openai_key = request.headers.get("X-OpenAI-API-Key") or HARDCODED_API_KEY
+    if openai_key == HARDCODED_API_KEY:
+        logger.info("Using hardcoded API key for testing")
     os.environ["OPENAI_API_KEY"] = openai_key
 
     result = refine_plantuml_code(plantuml_code=plantuml_code, message=user_message, output_dir=str(STATIC_DIR))
@@ -208,15 +210,13 @@ async def upload_cmdb(request: Request, file: UploadFile = File(...)):
         cmdb_items = construct_cmdb_from_file(str(dest))
         logger.info(f"✓ Parsed {len(cmdb_items)} CMDB items")
 
-        # AI enhancement if API key provided
-        openai_key = request.headers.get("X-OpenAI-API-Key")
-        if openai_key:
-            logger.info("Enhancing CMDB with AI to infer relationships and topology...")
-            enhanced = enrich_cmdb_with_ai_service(cmdb_items, openai_api_key=openai_key)
-            logger.info(f"✓ AI enriched CMDB items (count now: {len(enhanced)})")
-        else:
-            logger.info("No OpenAI key provided; returning parsed CMDB items without enrichment")
-            enhanced = cmdb_items
+        # AI enhancement with hardcoded key for testing
+        openai_key = request.headers.get("X-OpenAI-API-Key") or HARDCODED_API_KEY
+        if openai_key == HARDCODED_API_KEY:
+            logger.info("Using hardcoded API key for testing")
+        logger.info("Enhancing CMDB with AI to infer relationships and topology...")
+        enhanced = enrich_cmdb_with_ai_service(cmdb_items, openai_api_key=openai_key)
+        logger.info(f"✓ AI enriched CMDB items (count now: {len(enhanced)})")
 
         return {"success": True, "cmdb_items": enhanced}
     except Exception as e:
@@ -234,9 +234,9 @@ async def generate_cmdb_diagram(request: Request, body: dict = Body(...)):
         if not cmdb_items or not isinstance(cmdb_items, list):
             raise HTTPException(status_code=400, detail="cmdb_items (list) is required")
 
-        openai_key = request.headers.get("X-OpenAI-API-Key")
-        if not openai_key:
-            raise HTTPException(status_code=400, detail="OpenAI API key is required in X-OpenAI-API-Key header")
+        openai_key = request.headers.get("X-OpenAI-API-Key") or HARDCODED_API_KEY
+        if openai_key == HARDCODED_API_KEY:
+            logger.info("Using hardcoded API key for testing")
         os.environ["OPENAI_API_KEY"] = openai_key
 
         result = process_cmdb_and_generate(cmdb_items=cmdb_items, output_dir=str(STATIC_DIR))
@@ -256,9 +256,9 @@ async def chat_cmdb_plantuml(request: Request, body: dict = Body(...)):
     user_message = body.get("message")
     if not plantuml_code or not user_message:
         raise HTTPException(status_code=400, detail="plantuml_code and message are required")
-    openai_key = request.headers.get("X-OpenAI-API-Key")
-    if not openai_key:
-        raise HTTPException(status_code=400, detail="OpenAI API key is required. Please provide it in the X-OpenAI-API-Key header.")
+    openai_key = request.headers.get("X-OpenAI-API-Key") or HARDCODED_API_KEY
+    if openai_key == HARDCODED_API_KEY:
+        logger.info("Using hardcoded API key for testing")
     os.environ["OPENAI_API_KEY"] = openai_key
 
     result = refine_cmdb_plantuml_code(plantuml_code=plantuml_code, message=user_message, output_dir=str(STATIC_DIR))

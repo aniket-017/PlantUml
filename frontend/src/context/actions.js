@@ -5,9 +5,12 @@ export const ACTIONS = {
   CLEAR_ERROR: "CLEAR_ERROR",
   SET_STEP: "SET_STEP",
   SET_API_KEY: "SET_API_KEY",
+  SET_FILE_TYPE: "SET_FILE_TYPE",
   SET_UPLOADED_FILE: "SET_UPLOADED_FILE",
   SET_TEST_CASES: "SET_TEST_CASES",
+  SET_CMDB_ITEMS: "SET_CMDB_ITEMS",
   UPDATE_TEST_CASE: "UPDATE_TEST_CASE",
+  UPDATE_CMDB_ITEM: "UPDATE_CMDB_ITEM",
   SET_PLANTUML_DATA: "SET_PLANTUML_DATA",
   ADD_CHAT_MESSAGE: "ADD_CHAT_MESSAGE",
   RESET_STATE: "RESET_STATE",
@@ -34,6 +37,10 @@ export const setApiKey = (dispatch, apiKey) => {
   dispatch({ type: ACTIONS.SET_API_KEY, payload: apiKey });
 };
 
+export const setFileType = (dispatch, fileType) => {
+  dispatch({ type: ACTIONS.SET_FILE_TYPE, payload: fileType });
+};
+
 export const setUploadedFile = (dispatch, file) => {
   dispatch({ type: ACTIONS.SET_UPLOADED_FILE, payload: file });
 };
@@ -42,8 +49,16 @@ export const setTestCases = (dispatch, testCases) => {
   dispatch({ type: ACTIONS.SET_TEST_CASES, payload: testCases });
 };
 
+export const setCmdbItems = (dispatch, cmdbItems) => {
+  dispatch({ type: ACTIONS.SET_CMDB_ITEMS, payload: cmdbItems });
+};
+
 export const updateTestCase = (dispatch, id, updates) => {
   dispatch({ type: ACTIONS.UPDATE_TEST_CASE, payload: { id, updates } });
+};
+
+export const updateCmdbItem = (dispatch, id, updates) => {
+  dispatch({ type: ACTIONS.UPDATE_CMDB_ITEM, payload: { id, updates } });
 };
 
 export const setPlantUMLData = (dispatch, code, image) => {

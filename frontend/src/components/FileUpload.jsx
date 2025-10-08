@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
+import { Upload, FileSpreadsheet, Database, AlertCircle } from "lucide-react";
 import { apiService } from "../services/api";
 import { useApp } from "../hooks/useApp";
-import { setLoading, setError, setTestCases, setUploadedFile, setStep, setApiKey } from "../context/actions";
+import {
+  setLoading,
+  setError,
+  setTestCases,
+  setCmdbItems,
+  setUploadedFile,
+  setStep,
+  setApiKey,
+} from "../context/actions";
 import { storage } from "../utils/storage";
 import LoadingSpinner from "./LoadingSpinner";
 
@@ -24,25 +32,50 @@ const FileUpload = () => {
     if (!files || files.length === 0) return;
 
     const file = files[0];
+    const fileType = state.fileType || "test-cases";
 
-    // Validate file type
-    const validTypes = [
-      "text/csv",
-      "application/vnd.ms-excel",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ];
-    if (!validTypes.includes(file.type) && !file.name.match(/\.(csv|xlsx|xls)$/i)) {
-      setError(dispatch, "Please select a CSV or Excel file");
+    // Validate file type based on selected file type
+    let validTypes, validExtensions, errorMessage;
+
+    if (fileType === "cmdb") {
+      validTypes = [
+        "text/csv",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/json",
+        "text/yaml",
+        "application/x-yaml",
+      ];
+      validExtensions = /\.(csv|xlsx|xls|json|yaml|yml)$/i;
+      errorMessage = "Please select a CSV, Excel, JSON, or YAML file for CMDB data";
+    } else {
+      validTypes = [
+        "text/csv",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ];
+      validExtensions = /\.(csv|xlsx|xls)$/i;
+      errorMessage = "Please select a CSV or Excel file for test cases";
+    }
+
+    if (!validTypes.includes(file.type) && !file.name.match(validExtensions)) {
+      setError(dispatch, errorMessage);
       return;
     }
 
     try {
       setLoading(dispatch, true);
-      const result = await apiService.uploadFile(file);
+      const result = await apiService.uploadFile(file, fileType);
 
       if (result.success) {
         setUploadedFile(dispatch, file);
-        setTestCases(dispatch, result.test_cases);
+
+        if (fileType === "cmdb") {
+          setCmdbItems(dispatch, result.cmdb_items);
+        } else {
+          setTestCases(dispatch, result.test_cases);
+        }
+
         setStep(dispatch, "edit");
       } else {
         setError(dispatch, "Failed to process file");
@@ -82,20 +115,42 @@ const FileUpload = () => {
   };
 
   if (state.loading) {
+    const fileType = state.fileType || "test-cases";
+    const loadingText =
+      fileType === "cmdb" ? "AI is analyzing your CMDB data..." : "AI is analyzing your test cases...";
+    const subText =
+      fileType === "cmdb"
+        ? "Processing infrastructure components and relationships..."
+        : "This may take a few moments...";
+
     return (
       <div className="fixed inset-0 bg-gradient-to-br from-blue-900 via-blue-700 to-indigo-800 z-50 flex items-center justify-center">
-        <LoadingSpinner type="testCases" text="AI is analyzing your file..." subText="This may take a few moments..." />
+        <LoadingSpinner type={fileType} text={loadingText} subText={subText} />
       </div>
     );
   }
 
+  const fileType = state.fileType || "test-cases";
+  const isCmdb = fileType === "cmdb";
+  const title = isCmdb ? "CMDB to PlantUML Generator" : "Test Cases to PlantUML Generator";
+  const description = isCmdb
+    ? "Upload your CMDB file to generate system architecture diagrams"
+    : "Upload your CSV or Excel file to generate test flow diagrams";
+  const supportedFormats = isCmdb
+    ? "CSV, Excel, JSON, YAML files (.csv, .xlsx, .json, .yaml)"
+    : "CSV and Excel files (.csv, .xlsx, .xls)";
+  const Icon = isCmdb ? Database : FileSpreadsheet;
+
   return (
     <div className="max-w-2xl mx-auto p-4 sm:p-6">
       <div className="text-center mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-4xl font-bold text-gray-800 mb-4">CSV to PlantUML Generator</h1>
-        <p className="text-base sm:text-lg text-gray-600">
-          Upload your CSV or Excel file to generate beautiful UML diagrams
-        </p>
+        <div className="flex items-center justify-center mb-4">
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mr-3">
+            <Icon className="h-6 w-6 text-white" />
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-bold text-gray-800">{title}</h1>
+        </div>
+        <p className="text-base sm:text-lg text-gray-600">{description}</p>
       </div>
 
       {state.error && (
@@ -117,7 +172,7 @@ const FileUpload = () => {
         <input
           type="file"
           id="file-upload"
-          accept=".csv,.xlsx,.xls"
+          accept={isCmdb ? ".csv,.xlsx,.xls,.json,.yaml,.yml" : ".csv,.xlsx,.xls"}
           onChange={handleChange}
           disabled={state.loading}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
@@ -128,7 +183,7 @@ const FileUpload = () => {
 
           <div>
             <p className="text-base sm:text-lg font-medium text-gray-700">Drop your file here or click to browse</p>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">Supports CSV and Excel files (.csv, .xlsx, .xls)</p>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">Supports {supportedFormats}</p>
           </div>
 
           <button
@@ -136,7 +191,7 @@ const FileUpload = () => {
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm sm:text-base"
             onClick={() => document.getElementById("file-upload").click()}
           >
-            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            <Icon className="h-4 w-4 mr-2" />
             Choose File
           </button>
         </div>
@@ -149,19 +204,23 @@ const FileUpload = () => {
             <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold mr-3">
               1
             </span>
-            Upload your CSV or Excel file containing test case data
+            {isCmdb
+              ? "Upload your CMDB file containing system configuration data"
+              : "Upload your CSV or Excel file containing test case data"}
           </div>
           <div className="flex items-center">
             <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold mr-3">
               2
             </span>
-            Review and edit test cases if needed
+            {isCmdb ? "Review and edit CMDB items and relationships if needed" : "Review and edit test cases if needed"}
           </div>
           <div className="flex items-center">
             <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold mr-3">
               3
             </span>
-            Generate your PlantUML diagram automatically
+            {isCmdb
+              ? "Generate your system architecture PlantUML diagram automatically"
+              : "Generate your PlantUML diagram automatically"}
           </div>
           <div className="flex items-center">
             <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold mr-3">

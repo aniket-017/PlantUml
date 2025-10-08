@@ -1,64 +1,68 @@
 @startuml
 actor Customer
 actor Pharmacist
-actor "QA Engineer" as QA
-participant "EPS" as eps
-participant "Kafka" as kafka
-participant "GenRx Engine" as ge
-participant "TMX" as tmx
-participant "ACS" as acs
-participant "Payment Gateway" as pg
-participant "CSX" as csx
+actor System
 
-== Setup and Initialization for Test Cases ==
-QA -> eps : Verify valid patient data
-QA -> kafka : Ensure CSX is connected
-QA -> eps : Confirm access rights
-QA -> QA : All systems operational
+Customer -> CSX: Enter IDs and click Continue
+CSX -> Kafka: Send identification data
+Kafka -> GE: Forward patient data
+GE -> EPS: Fetch patient and prescription data
+EPS -> GE: Return prescription and patient data
+GE -> Kafka: Push data
+Kafka -> TMX: Deliver prescription data
+TMX -> Pharmacist: Display full prescription list
+TMX -> CSX: Share copay amount
 
-== Identify Patient and Fetch Prescriptions ==
-Customer -> csx : Enter identification
-csx -> kafka : Send identification data
-kafka -> ge : Forward identification data
-ge -> eps : Fetch patient/prescription data
-eps -> ge : Return patient/prescription data
-ge -> kafka : Push data to Kafka
-kafka -> tmx : Deliver prescription data
-tmx -> Pharmacist : Display complete prescription list
-tmx -> csx : Share copay amount
+Pharmacist -> TMX: Perform scan-scan validation
+TMX -> Kafka: Send scanned prescription data
+Kafka -> GE: Forward data
+GE -> EPS: Validate safety
+EPS -> GE: Return validation result
+GE -> Kafka: Push validation result
+Kafka -> TMX: Deliver validation status
+TMX -> Pharmacist: Receive validation status
 
-== Verify Patient Safety Validation ==
-Pharmacist -> tmx : Perform scan-scan validation
-tmx -> kafka : Send scanned prescription data
-kafka -> ge : Forward data to GE
-ge -> eps : Validate safety
-eps -> ge : Return validation result
-ge -> kafka : Push validation result
-kafka -> tmx : Deliver validation status
-tmx -> Pharmacist : Display validation status
+Pharmacist -> TMX: Initiate compliance request
+TMX -> Kafka: Send request
+Kafka -> GE: Forward request
+GE -> EPS: Store compliance request
+EPS -> GE: Acknowledge compliance
+GE -> Kafka: Deliver compliance acknowledgment
+TMX -> CSX: Display compliance document
+CSX -> Customer: Review and sign
+CSX -> TMX: Send signed document
+TMX -> Kafka: Save signature record
+Kafka -> GE: Notify saved record
+GE -> EPS: Confirm update
+TMX -> Pharmacist: Show completion status
 
-== Complete Compliance Document Review and Signature ==
-Pharmacist -> tmx : Initiate compliance request
-tmx -> kafka : Send request to GE
-ge -> eps : Store compliance request
-eps -> ge : Acknowledge compliance record
-ge -> kafka : Deliver compliance acknowledgment
-kafka -> tmx : Display compliance document
-tmx -> csx : Present for review/signature
-csx -> tmx : Send signed document back
-tmx -> kafka : Save compliance signature record
-kafka -> eps : Confirm update
-ge -> kafka : Deliver completion status
+Pharmacist -> TMX: Initiate payment transaction
+TMX -> Kafka: Payment request initiated
+Kafka -> ACS: Forward payment request
+ACS -> PG: Process payment
+PG -> ACS: Return payment success
+ACS -> Kafka: Notify payment success
+Kafka -> GE: Update payment details
+GE -> EPS: Submit update confirmation
+EPS -> GE: Acknowledge update
+GE -> Kafka: Deliver payment status
+TMX -> Customer: Confirm transaction
 
-== Process Payment and Update EPS ==
-Pharmacist -> tmx : Initiate payment transaction
-tmx -> kafka : Send payment request to ACS
-acs -> pg : Process payment
-pg -> acs : Return payment success confirmation
-acs -> kafka : Payment success notification
-ge -> eps : Update payment details
-eps -> ge : Acknowledge update
-ge -> kafka : Deliver payment success status
-tmx -> Customer : Display transaction completion confirmation
+Customer -> CSX: Enter invalid data
+CSX -> Customer: Display error message
 
+Pharmacist -> TMX: Validate with invalid data
+TMX -> Kafka: Send scanned data
+Kafka -> GE: Forward data
+GE -> EPS: Validate and fail
+GE -> Kafka: Push failure result
+Kafka -> TMX: Inform failure
+
+Customer -> CSX: Open compliance document
+CSX -> Customer: Display error if unsigned
+CSX -> TMX: Save unsigned document
+
+System -> EPS: Remove test records
+System -> Kafka: Close connections
+System -> System: Clean up test data
 @enduml

@@ -6,8 +6,10 @@ import { apiService } from "./services/api";
 import LandingPage from "./components/LandingPage";
 import StepIndicator from "./components/StepIndicator";
 import ApiKeyInput from "./components/ApiKeyInput";
+import FileTypeSelector from "./components/FileTypeSelector";
 import FileUpload from "./components/FileUpload";
 import TestCaseEditor from "./components/TestCaseEditor";
+import CmdbEditor from "./components/CmdbEditor";
 import DiagramViewer from "./components/DiagramViewer";
 import ChatInterface from "./components/ChatInterface";
 import "./App.css";
@@ -19,7 +21,7 @@ const AppContent = () => {
     // Set API key in context and API service
     setApiKey(dispatch, apiKey);
     apiService.setApiKey(apiKey);
-    setStep(dispatch, "upload");
+    setStep(dispatch, "file-type");
   };
 
   const renderCurrentStep = () => {
@@ -28,9 +30,15 @@ const AppContent = () => {
         return <LandingPage />;
       case "api-key":
         return <ApiKeyInput onApiKeySet={handleApiKeySet} />;
+      case "file-type":
+        return <FileTypeSelector />;
       case "upload":
         return <FileUpload />;
       case "edit":
+        // Show appropriate editor based on file type
+        if (state.fileType === "cmdb") {
+          return <CmdbEditor />;
+        }
         return <TestCaseEditor />;
       case "diagram":
         return <DiagramViewer />;
