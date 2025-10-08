@@ -1,5 +1,5 @@
-// const BASE_URL = "https://poc1.prashantpukale.com";
-const BASE_URL = "http://localhost:2004";
+const BASE_URL = "https://poc1.prashantpukale.com";
+// const BASE_URL = "http://localhost:2004";
 
 class ApiService {
   constructor() {
