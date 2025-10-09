@@ -28,18 +28,36 @@ class ApiService {
     formData.append("file", file);
 
     const endpoint = fileType === "cmdb" ? "/upload-cmdb/" : "/upload-csv/";
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: "POST",
-      headers: this.getHeaders(false), // Don't include Content-Type for FormData
-      body: formData,
-    });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes timeout
+
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        method: "POST",
+        headers: this.getHeaders(false), // Don't include Content-Type for FormData
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === "AbortError") {
+        throw new Error(
+          "Request timeout: The server is taking too long to process your file. Please try again with a smaller file or check your internet connection."
+        );
+      }
+      throw error;
     }
-
-    return await response.json();
   }
 
   async generateDiagram(testCases) {
@@ -47,20 +65,35 @@ class ApiService {
       throw new Error("OpenAI API key is required. Please set your API key first.");
     }
 
-    const response = await fetch(`${BASE_URL}/generate-diagram/`, {
-      method: "POST",
-      headers: this.getHeaders(),
-      body: JSON.stringify({
-        test_cases: testCases,
-      }),
-    });
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes timeout
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    try {
+      const response = await fetch(`${BASE_URL}/generate-diagram/`, {
+        method: "POST",
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          test_cases: testCases,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === "AbortError") {
+        throw new Error("Request timeout: The server is taking too long to generate the diagram. Please try again.");
+      }
+      throw error;
     }
-
-    return await response.json();
   }
 
   async generateCmdbDiagram(cmdbItems) {
@@ -68,20 +101,37 @@ class ApiService {
       throw new Error("OpenAI API key is required. Please set your API key first.");
     }
 
-    const response = await fetch(`${BASE_URL}/generate-cmdb-diagram/`, {
-      method: "POST",
-      headers: this.getHeaders(),
-      body: JSON.stringify({
-        cmdb_items: cmdbItems,
-      }),
-    });
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes timeout
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    try {
+      const response = await fetch(`${BASE_URL}/generate-cmdb-diagram/`, {
+        method: "POST",
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          cmdb_items: cmdbItems,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === "AbortError") {
+        throw new Error(
+          "Request timeout: The server is taking too long to generate the CMDB diagram. Please try again."
+        );
+      }
+      throw error;
     }
-
-    return await response.json();
   }
 
   async chatWithPlantUML(plantUMLCode, message) {

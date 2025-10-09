@@ -1,68 +1,77 @@
 @startuml
+actor SystemAdministrator
 actor Customer
 actor Pharmacist
-actor System
+participant CSX
+participant Kafka
+participant GenRxEngine as GE
+participant EPS
+participant TMX
+participant ACS
+participant PaymentGateway as PG
 
-Customer -> CSX: Enter IDs and click Continue
-CSX -> Kafka: Send identification data
-Kafka -> GE: Forward patient data
-GE -> EPS: Fetch patient and prescription data
-EPS -> GE: Return prescription and patient data
-GE -> Kafka: Push data
-Kafka -> TMX: Deliver prescription data
-TMX -> Pharmacist: Display full prescription list
-TMX -> CSX: Share copay amount
+SystemAdministrator -> CSX : Connect to the network
+SystemAdministrator -> Kafka : Set up Kafka
+SystemAdministrator -> EPS : Set up EPS
+CSX -> Kafka : Verify services are running
 
-Pharmacist -> TMX: Perform scan-scan validation
-TMX -> Kafka: Send scanned prescription data
-Kafka -> GE: Forward data
-GE -> EPS: Validate safety
-EPS -> GE: Return validation result
-GE -> Kafka: Push validation result
-Kafka -> TMX: Deliver validation status
-TMX -> Pharmacist: Receive validation status
+Customer -> CSX : Enter identification and click Continue
+CSX -> Kafka : Send identification data
+Kafka -> GE : Forward data to GenRx Engine
+GE -> EPS : Fetch patient and prescription data
+EPS -> GE : Return prescription and patient data
+GE -> Kafka : Push data
+Kafka -> TMX : Deliver prescription data
+TMX -> Pharmacist : Display full prescription list
+TMX -> CSX : Share limited details (copay amount)
 
-Pharmacist -> TMX: Initiate compliance request
-TMX -> Kafka: Send request
-Kafka -> GE: Forward request
-GE -> EPS: Store compliance request
-EPS -> GE: Acknowledge compliance
-GE -> Kafka: Deliver compliance acknowledgment
-TMX -> CSX: Display compliance document
-CSX -> Customer: Review and sign
-CSX -> TMX: Send signed document
-TMX -> Kafka: Save signature record
-Kafka -> GE: Notify saved record
-GE -> EPS: Confirm update
-TMX -> Pharmacist: Show completion status
+Pharmacist -> TMX : Perform scan-scan validation
+TMX -> Kafka : Send scanned prescription data
+Kafka -> GE : Forward data
+GE -> EPS : Validate safety
+EPS -> GE : Return validation result
+GE -> Kafka : Push validation result
+Kafka -> TMX : Deliver status
+TMX -> Pharmacist : Receive validation status
 
-Pharmacist -> TMX: Initiate payment transaction
-TMX -> Kafka: Payment request initiated
-Kafka -> ACS: Forward payment request
-ACS -> PG: Process payment
-PG -> ACS: Return payment success
-ACS -> Kafka: Notify payment success
-Kafka -> GE: Update payment details
-GE -> EPS: Submit update confirmation
-EPS -> GE: Acknowledge update
-GE -> Kafka: Deliver payment status
-TMX -> Customer: Confirm transaction
+Pharmacist -> TMX : Initiate compliance request
+TMX -> Kafka : Send request to GE
+GE -> EPS : Store request
+EPS -> GE : Acknowledge compliance record
+GE -> Kafka : Compliance acknowledgment delivered
+Kafka -> TMX : Deliver acknowledgment
+TMX -> CSX : Display compliance document
+Customer -> CSX : Review and sign
+CSX -> TMX : Send signed document
+TMX -> Kafka : Save compliance signature record to GE
+Kafka -> EPS : Confirm update
+GE -> Kafka : Compliance completion status delivered
+Kafka -> TMX : Deliver final status
 
-Customer -> CSX: Enter invalid data
-CSX -> Customer: Display error message
+Pharmacist -> TMX : Initiate payment transaction
+TMX -> Kafka : Payment request initiated
+Kafka -> ACS : Forward request
+ACS -> PG : Process payment
+PG -> ACS : Return payment confirmation
+ACS -> Kafka : Payment success notification
+Kafka -> GE : Update payment details
+GE -> EPS : Acknowledge update
+EPS -> GE : Confirmation
+GE -> Kafka : Payment success status
+Kafka -> TMX : Deliver success status
+TMX -> Customer : Display confirmation
 
-Pharmacist -> TMX: Validate with invalid data
-TMX -> Kafka: Send scanned data
-Kafka -> GE: Forward data
-GE -> EPS: Validate and fail
-GE -> Kafka: Push failure result
-Kafka -> TMX: Inform failure
+Customer -> CSX : Enter invalid identification
+CSX -> Kafka : Attempt to send data
+CSX -> Customer : Display error for invalid data
 
-Customer -> CSX: Open compliance document
-CSX -> Customer: Display error if unsigned
-CSX -> TMX: Save unsigned document
+Pharmacist -> TMX : Initiate payment with zero amount
+TMX -> Kafka : Payment request for zero amount
+note right of TMX: Validate edge case response
 
-System -> EPS: Remove test records
-System -> Kafka: Close connections
-System -> System: Clean up test data
+SystemAdministrator -> CSX : Disconnect from the network
+SystemAdministrator -> Kafka : Shut down Kafka
+SystemAdministrator -> EPS : Shut down EPS
+CSX -> SystemAdministrator : Verify all services stopped
+
 @enduml

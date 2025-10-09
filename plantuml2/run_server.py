@@ -10,5 +10,7 @@ if __name__ == "__main__":
         "app.main:app",
         host="0.0.0.0",
         port=2004,
-        reload=True
+        reload=True,
+        timeout_keep_alive=300,
+        timeout_graceful_shutdown=30
     )

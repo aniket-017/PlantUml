@@ -1,28 +1,40 @@
 @startuml
-package "Retail Cloud Architecture" {
-    [Online Storefront] as APP001
-    [E-Commerce Platform] as SVC001
-    [Orders Database] as DB001
-    [Event Queue] as MQ001
-    [Inventory Service] as SVC002
-    [Inventory DB] as DB002
-    [Mobile App API] as APP002
-    [Authentication Service] as AUTH001
-    [Auth DB] as DB003
-    [Retail Cloud Cluster] as SYS001
-
-    APP001 --|> SVC001 : depends_on
-    SVC001 --|> DB001 : depends_on
-    MQ001 --|> SVC001 : used_by
-    SVC002 --|> MQ001 : depends_on
-    SVC002 --|> DB002 : depends_on
-    APP002 --|> SVC001 : depends_on
-    AUTH001 --|> APP002 : provides
-    AUTH001 --|> DB003 : depends_on
-    DB001 --|> SVC001 : used_by
-    APP001 --|> SYS001 : supports
-    SVC001 --|> SYS001 : supports
-    APP002 --|> SYS001 : supports
-    AUTH001 --|> SYS001 : supports
+package "Production Environment" {
+    component APP001 as "Online Storefront\nCI_ID: APP001\ntype: Application"
+    component SVC001 as "E-Commerce Platform\nCI_ID: SVC001\ntype: Service"
+    component DB001 as "Orders Database\nCI_ID: DB001\ntype: Database"
+    component MQ001 as "Event Queue\nCI_ID: MQ001\ntype: Middleware"
+    component SVC002 as "Inventory Service\nCI_ID: SVC002\ntype: Microservice"
+    component DB002 as "Inventory DB\nCI_ID: DB002\ntype: Database"
+    component APP002 as "Mobile App API\nCI_ID: APP002\ntype: API Gateway"
+    component AUTH001 as "Authentication Service\nCI_ID: AUTH001\ntype: Service"
+    component DB003 as "Auth DB\nCI_ID: DB003\ntype: Database"
+    rectangle SYS001 as "Retail Cloud Cluster\nCI_ID: SYS001\ntype: System"
 }
+
+APP001 --> SVC001 : provides_to
+SVC001 --> APP001 : depends_on
+
+APP001 --> DB001 : reads_from
+DB001 --> SVC001 : provides_to
+
+SVC001 --> MQ001 : uses
+MQ001 --> SVC001 : provides_to
+
+SVC001 --> SVC002 : interacts_with
+SVC002 --> MQ001 : depends_on
+
+SVC002 --> DB002 : reads_from
+DB002 --> SVC002 : provides_to
+
+APP002 --> AUTH001 : depends_on
+AUTH001 --> APP002 : provides_to
+
+AUTH001 --> DB003 : reads_from
+DB003 --> AUTH001 : provides_to
+
+SYS001 --> APP001 : hosts
+SYS001 --> SVC001 : hosts
+SYS001 --> APP002 : hosts
+SYS001 --> AUTH001 : hosts
 @enduml

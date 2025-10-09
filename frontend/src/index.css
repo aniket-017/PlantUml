@@ -976,3 +976,32 @@
 .progress-fill-animated {
   animation: progressFill 1s ease-out;
 }
+
+/* Time Information Styles */
+.time-info {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.time-info-tc {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.elapsed-time, .elapsed-time-tc {
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.estimated-time, .estimated-time-tc {
+  font-style: italic;
+  color: #9ca3af;
+}
