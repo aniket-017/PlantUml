@@ -1,0 +1,29 @@
+TestCase ID,Source Component,Target Component,LOB,Integration Type,Test Objective,Precondition,Test Steps,Expected Result,Data Type,Validation Method,Business Validation Points
+ITC001,Digital Logic,Digital SQL Copy,Digital,Batch dependency,Validate Digital Logic pushes correct data to Digital SQL Copy DB,Digital Logic batch job configured and running,"1. Trigger Digital Logic batch
+2. Verify connection to Digital SQL Copy
+3. Compare data schema
+4. Validate record counts and sample data integrity",Digital SQL Copy receives all valid data records correctly,Transactional data,DB schema + data count comparison,Ensure updated pricing logic data is available for analytics and reporting without delay.
+ITC002,Merch Price API,Shelf Edge Systems,Merchandising,API call,Validate real-time data sync from Merch Price API to Shelf Edge display system,Shelf Edge Systems online and API endpoint active,"1. Trigger Merch Price API update
+2. Monitor Shelf Edge Systems API call response
+3. Compare product price and label data
+4. Check display refresh logs",Shelf Edge reflects updated price data in real-time,Pricing data,API response validation + UI verification,Confirm that shelf edge price labels accurately reflect promotions and avoid pricing discrepancies at stores.
+ITC003,Price Extract (Batch),Mainframe Jobs,Logics/Hub,Batch dependency,Ensure extracted pricing data is correctly consumed by Mainframe Jobs,Price Extract batch completes successfully,"1. Run Price Extract job
+2. Monitor Mainframe job input logs
+3. Validate record transformation and file format
+4. Confirm job completion without errors",Mainframe successfully loads and processes extracted pricing data,Pricing batch data,Log and job status verification,Confirm that mainframe pricing updates are processed correctly for downstream sales and promotions workflows.
+ITC004,Kafka (PDP pricing),Price Service Bus,Digital,Real-time publish,Validate Kafka message delivery to Price Service Bus,Kafka topic initialized and listeners configured,"1. Publish price message on Kafka topic
+2. Validate message received by Price Service Bus
+3. Check for data integrity and latency
+4. Ensure no message duplication or loss",All messages are delivered once with accurate pricing payloads,Kafka JSON message,Kafka consumer logs + event metrics,Assure that product price updates propagate instantly to all digital platforms to maintain price consistency across channels.
+ITC005,Merch Price Cosmos,Merch Price API,Merchandising,Data sync,Validate Merch Price API correctly reads data from Merch Price Cosmos,Merch Price Cosmos populated with latest pricing records,"1. Query Merch Price API endpoint
+2. Compare response with Cosmos DB records
+3. Validate field mapping and null handling
+4. Test error response on missing data",API returns complete and consistent pricing data from Cosmos,JSON / DB records,API response vs DB comparison,Ensure that accurate and complete merchandising prices are available to support order fulfillment and inventory valuation processes.
+ITC006,Ad Campaign,Teradata Copy,Reporting,Batch dependency,Validate Ad Campaign data replication into Teradata Copy for analytics,Ad Campaign batch completed,"1. Execute Ad Campaign load job
+2. Check Teradata Copy tables for data arrival
+3. Validate schema, record count, and checksum
+4. Verify ETL logs for errors",All Ad Campaign data successfully replicated into Teradata Copy,Campaign dataset,ETL log + data validation script,"Ensure marketing teams have accurate, up-to-date campaign performance data for budget and ROI analysis."
+ITC007,Freshwater Digital,Ad Campaign,Marketing,Data feed,Verify marketing data feed integration between Freshwater Digital and Ad Campaign module,Freshwater Digital connection available,"1. Send sample marketing feed
+2. Capture Ad Campaign job input logs
+3. Validate transformation and content mapping
+4. Ensure rejected record handling",Marketing feed successfully ingested and transformed in Ad Campaign module,Marketing feed,File ingestion and transformation logs,Validate that third-party marketing data feeds are correctly mapped and available for ad scheduling and execution planning.

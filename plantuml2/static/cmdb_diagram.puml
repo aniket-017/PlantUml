@@ -1,40 +1,65 @@
 @startuml
-package "Production Environment" {
-    component APP001 as "Online Storefront\nCI_ID: APP001\ntype: Application"
-    component SVC001 as "E-Commerce Platform\nCI_ID: SVC001\ntype: Service"
-    component DB001 as "Orders Database\nCI_ID: DB001\ntype: Database"
-    component MQ001 as "Event Queue\nCI_ID: MQ001\ntype: Middleware"
-    component SVC002 as "Inventory Service\nCI_ID: SVC002\ntype: Microservice"
-    component DB002 as "Inventory DB\nCI_ID: DB002\ntype: Database"
-    component APP002 as "Mobile App API\nCI_ID: APP002\ntype: API Gateway"
-    component AUTH001 as "Authentication Service\nCI_ID: AUTH001\ntype: Service"
-    component DB003 as "Auth DB\nCI_ID: DB003\ntype: Database"
-    rectangle SYS001 as "Retail Cloud Cluster\nCI_ID: SYS001\ntype: System"
+left to right direction
+
+package "STME" {
+  [Row 2]
+  node "Shelf Edge Service" as SES
 }
 
-APP001 --> SVC001 : provides_to
-SVC001 --> APP001 : depends_on
+package "Merchandising" {
+  component "Merch Price API" as MPAPI
+  database "Merch Price Cosmos DB" as MPCosmos
+  [Row 5]
+}
 
-APP001 --> DB001 : reads_from
-DB001 --> SVC001 : provides_to
+package "Digital" {
+  [Row 3]
+  [Row 4]
+}
 
-SVC001 --> MQ001 : uses
-MQ001 --> SVC001 : provides_to
+package "Logics/Hub" {
+  queue "Shelf Edge Update Queue" as SEQ
+  queue "Marketing Ingest Queue" as MIQ
+}
 
-SVC001 --> SVC002 : interacts_with
-SVC002 --> MQ001 : depends_on
+package "Reporting/Analytics" {
+  database "Teradata Copy" as TeradataCopy
+}
 
-SVC002 --> DB002 : reads_from
-DB002 --> SVC002 : provides_to
+package "Marketing" {
+  component "Ad Campaign" as AdCampaign
+  [Row 6]
+}
 
-APP002 --> AUTH001 : depends_on
-AUTH001 --> APP002 : provides_to
+package "Corporate" {
+  [Row 1]
+}
 
-AUTH001 --> DB003 : reads_from
-DB003 --> AUTH001 : provides_to
+package "Third-Party" {
+  cloud "Freshwater Digital" as Freshwater
+  [Row 7]
+}
 
-SYS001 --> APP001 : hosts
-SYS001 --> SVC001 : hosts
-SYS001 --> APP002 : hosts
-SYS001 --> AUTH001 : hosts
+' CMDB-declared relationships (show both directions and via-components)
+[Row 2] --> [Row 5] : depends_on via Merch Price API (reads_from)
+[Row 5] --> [Row 2] : upstream_of via Merch Price API (feeds)
+
+[Row 6] --> [Row 7] : depends_on via Ad Campaign (ingests_from)
+[Row 7] --> [Row 6] : upstream_of via Freshwater Digital (supplies_feed)
+
+' Detailed system interactions realizing the above relationships
+[Row 2] --> MPAPI : uses for shelf-edge pricing
+MPAPI --> MPCosmos : reads_from
+MPCosmos --> [Row 5] : underpins data domain
+
+MPAPI --> SEQ : publishes price updates
+SEQ --> SES : delivers shelf-edge updates
+[Row 2] --> SES : serves shelf-edge experience
+
+[Row 7] --> Freshwater : source_feed provided_by
+Freshwater --> MIQ : pushes marketing feed
+MIQ --> AdCampaign : ingests_from queue
+[Row 6] --> AdCampaign : runs ETL/load jobs
+AdCampaign --> TeradataCopy : loads to analytics DB
+
 @enduml
